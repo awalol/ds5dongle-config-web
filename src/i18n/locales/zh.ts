@@ -8,6 +8,12 @@ export const zh = {
     english: "English",
     chinese: "中文",
   },
+  theme: {
+    label: "主题",
+    light: "浅色",
+    dark: "深色",
+    system: "跟随系统",
+  },
   status: {
     webHidUnavailable: "WebHID 不可用",
     connecting: "正在连接",

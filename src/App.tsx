@@ -6,9 +6,11 @@ import { ConfigPanel } from "./components/ConfigPanel";
 import { DeviceStrip } from "./components/DeviceStrip";
 import { NoticeList } from "./components/NoticeList";
 import { useDs5Bridge } from "./hooks/useDs5Bridge";
+import { useTheme } from "./hooks/useTheme";
 
 export default function App() {
   const bridge = useDs5Bridge();
+  const theme = useTheme();
   const isBusy = bridge.operation !== null;
   const hasIssues = bridge.issues.length > 0;
 
@@ -44,7 +46,12 @@ export default function App() {
         }}
       />
       <main className="app-shell">
-        <AppHeader isConnected={bridge.isConnected} statusText={bridge.statusText} />
+        <AppHeader
+          isConnected={bridge.isConnected}
+          statusText={bridge.statusText}
+          theme={theme.theme}
+          onThemeChange={theme.setTheme}
+        />
         <NoticeList supported={bridge.supported} />
         <DeviceStrip
           authorizedDevices={bridge.authorizedDevices}

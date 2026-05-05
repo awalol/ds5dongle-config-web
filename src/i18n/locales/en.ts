@@ -8,6 +8,12 @@ export const en = {
     english: "English",
     chinese: "中文",
   },
+  theme: {
+    label: "Theme",
+    light: "Light",
+    dark: "Dark",
+    system: "System",
+  },
   status: {
     webHidUnavailable: "WebHID unavailable",
     connecting: "Connecting",
