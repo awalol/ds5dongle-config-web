@@ -25,7 +25,6 @@ export function ConfigPanel({ bridge }: ConfigPanelProps) {
         </CardTitle>
       </CardHeader>
 
-        <FloatControl
       <CardContent className="config-sections p-0">
         <section className="config-section config-section-featured">
           <div className="config-section-heading">
