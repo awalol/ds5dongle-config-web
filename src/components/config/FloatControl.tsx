@@ -10,17 +10,32 @@ interface FloatControlProps {
   min: number;
   max: number;
   step: number;
+  displayScale?: number;
+  displayOffset?: number;
+  fractionDigits?: number;
   issue?: ConfigValidationIssue;
   onChange: (value: number) => void;
 }
 
-export function FloatControl({ label, value, min, max, step, issue, onChange }: FloatControlProps) {
+export function FloatControl({
+  label,
+  value,
+  min,
+  max,
+  step,
+  displayScale = 1,
+  displayOffset = 0,
+  fractionDigits = 2,
+  issue,
+  onChange,
+}: FloatControlProps) {
   const { t } = useTranslation();
+  const inputValue = (value + displayOffset) * displayScale;
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const next = Number(event.currentTarget.value);
     if (Number.isFinite(next)) {
-      onChange(next);
+      onChange(next / displayScale - displayOffset);
     }
   };
 
@@ -40,10 +55,10 @@ export function FloatControl({ label, value, min, max, step, issue, onChange }: 
         <Slider min={min} max={max} step={step} value={[value]} onValueChange={handleSliderChange} />
         <Input
           type="number"
-          min={min}
-          max={max}
-          step={step}
-          value={value.toFixed(2)}
+          min={(min + displayOffset) * displayScale}
+          max={(max + displayOffset) * displayScale}
+          step={step * displayScale}
+          value={inputValue.toFixed(fractionDigits)}
           onChange={handleChange}
           aria-invalid={Boolean(issue)}
           className="font-bold"

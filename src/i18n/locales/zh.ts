@@ -93,10 +93,10 @@ export const zh = {
   },
   validation: {
     hapticsGain: "触觉增益必须在 1.0 到 2.0 之间",
-    speakerVolume: "扬声器音量必须在 1.0 到 2.0 之间",
-    inactiveTime: "闲置时间必须在 10 到 60 分钟之间",
+    speakerVolume: "扬声器音量必须在 0% 到 100% 之间",
+    inactiveTime: "闲置时间必须在 5 到 60 分钟之间",
     pollingRateMode: "轮询率模式必须是 0、1 或 2",
-    hapticsBufferLength: "触觉缓冲长度必须在 16 到 255 之间",
+    hapticsBufferLength: "触觉缓冲长度必须在 16 到 128 之间",
     controllerMode: "控制器模式必须是 DS5 或 DSE",
   },
   errors: {

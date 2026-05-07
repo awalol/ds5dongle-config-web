@@ -101,7 +101,7 @@ export function validateConfig(config: ConfigBody): ConfigValidationIssue[] {
     issues.push({ field: "speakerVolume" });
   }
 
-  if (!Number.isInteger(config.inactiveTime) || config.inactiveTime < 10 || config.inactiveTime > 60) {
+  if (!Number.isInteger(config.inactiveTime) || config.inactiveTime < 5 || config.inactiveTime > 60) {
     issues.push({ field: "inactiveTime" });
   }
 
@@ -112,7 +112,7 @@ export function validateConfig(config: ConfigBody): ConfigValidationIssue[] {
   if (
     !Number.isInteger(config.hapticsBufferLength) ||
     config.hapticsBufferLength < 16 ||
-    config.hapticsBufferLength > 255
+    config.hapticsBufferLength > 128
   ) {
     issues.push({ field: "hapticsBufferLength" });
   }
@@ -128,11 +128,11 @@ export function normalizeConfig(config: ConfigBody): ConfigBody {
   return {
     hapticsGain: roundToStep(config.hapticsGain, 0.01),
     speakerVolume: roundToStep(config.speakerVolume, 0.01),
-    inactiveTime: clampInteger(config.inactiveTime, 10, 60),
+    inactiveTime: clampInteger(config.inactiveTime, 5, 60),
     disableInactiveDisconnect: Boolean(config.disableInactiveDisconnect),
     disablePicoLed: Boolean(config.disablePicoLed),
     pollingRateMode: clampInteger(config.pollingRateMode, 0, 2) as PollingRateMode,
-    hapticsBufferLength: clampInteger(config.hapticsBufferLength, 16, 255),
+    hapticsBufferLength: clampInteger(config.hapticsBufferLength, 16, 128),
     controllerMode: clampInteger(config.controllerMode, 0, 1) as ControllerMode,
   };
 }

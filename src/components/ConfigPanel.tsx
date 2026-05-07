@@ -47,11 +47,14 @@ export function ConfigPanel({ bridge }: ConfigPanelProps) {
               onChange={(value) => bridge.setDraftField("hapticsGain", value)}
             />
             <FloatControl
-              label={t("config.speakerVolume")}
+              label={`${t("config.speakerVolume")} (%)`}
               value={bridge.draft.speakerVolume}
               min={1}
               max={2}
-              step={0.05}
+              step={0.01}
+              displayScale={100}
+              displayOffset={-1}
+              fractionDigits={0}
               issue={fieldIssue(bridge.issues, "speakerVolume")}
               onChange={(value) => bridge.setDraftField("speakerVolume", value)}
             />
@@ -59,7 +62,7 @@ export function ConfigPanel({ bridge }: ConfigPanelProps) {
               label={t("config.hapticsBufferLength")}
               value={bridge.draft.hapticsBufferLength}
               min={16}
-              max={255}
+              max={128}
               issue={fieldIssue(bridge.issues, "hapticsBufferLength")}
               onChange={(value) => bridge.setDraftField("hapticsBufferLength", value)}
             />
@@ -80,7 +83,7 @@ export function ConfigPanel({ bridge }: ConfigPanelProps) {
             <IntegerControl
               label={`${t("config.inactiveTime")} (${t("config.inactiveTimeUnit")})`}
               value={bridge.draft.inactiveTime}
-              min={10}
+              min={5}
               max={60}
               issue={fieldIssue(bridge.issues, "inactiveTime")}
               onChange={(value) => bridge.setDraftField("inactiveTime", value)}

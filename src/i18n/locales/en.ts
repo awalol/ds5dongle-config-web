@@ -93,10 +93,10 @@ export const en = {
   },
   validation: {
     hapticsGain: "Haptics gain must be between 1.0 and 2.0",
-    speakerVolume: "Speaker volume must be between 1.0 and 2.0",
-    inactiveTime: "Inactive time must be between 10 and 60 minutes",
+    speakerVolume: "Speaker volume must be between 0% and 100%",
+    inactiveTime: "Inactive time must be between 5 and 60 minutes",
     pollingRateMode: "Polling rate mode must be 0, 1, or 2",
-    hapticsBufferLength: "Haptics buffer length must be between 16 and 255",
+    hapticsBufferLength: "Haptics buffer length must be between 16 and 128",
     controllerMode: "Controller mode must be DS5 or DSE",
   },
   errors: {
