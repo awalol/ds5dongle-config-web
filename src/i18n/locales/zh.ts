@@ -18,6 +18,7 @@ export const zh = {
     webHidUnavailable: "WebHID 不可用",
     connecting: "正在连接",
     reading: "正在读取配置",
+    readingFirmware: "正在读取固件版本",
     applying: "正在应用配置",
     saving: "正在保存到 Flash",
     reconnecting: "正在重连 USB",
@@ -40,6 +41,8 @@ export const zh = {
   },
   device: {
     label: "设备",
+    firmwareVersion: "固件版本",
+    firmwareUnknown: "未知",
     open: "打开",
     openTitle: "打开第一个已授权设备",
     connect: "连接",
@@ -100,7 +103,7 @@ export const zh = {
   validation: {
     hapticsGain: "触觉增益必须在 1.0 到 2.0 之间",
     speakerVolume: "扬声器音量必须在 0% 到 100% 之间",
-    inactiveTime: "闲置时间必须在 5 到 60 分钟之间",
+    inactiveTime: "闲置时间必须在 10 到 60 分钟之间",
     pollingRateMode: "轮询率模式必须是 0、1 或 2",
     hapticsBufferLength: "触觉缓冲长度必须在 16 到 128 之间",
     controllerMode: "控制器模式必须是 DS5、DSE 或自动",
@@ -108,6 +111,7 @@ export const zh = {
   errors: {
     invalidConfig: "设备返回了无效配置：{{issues}}",
     invalidBytes: "设备返回了 {{count}} 字节，期望至少 {{expected}} 字节",
+    configVersionMismatch: "配置版本不匹配：网页支持版本 {{expected}}，设备返回版本 {{actual}}",
     noDeviceSelected: "未选择 DS5 Bridge 设备",
     unexpectedWebHid: "未知 WebHID 错误",
     disconnected: "设备已断开连接",

@@ -7,6 +7,7 @@ interface DeviceStripProps {
   authorizedDevices: HIDDevice[];
   client: unknown | null;
   deviceLabel: string;
+  firmwareVersion: string | null;
   isBusy: boolean;
   supported: boolean;
   onConnect: () => void;
@@ -17,12 +18,14 @@ export function DeviceStrip({
   authorizedDevices,
   client,
   deviceLabel,
+  firmwareVersion,
   isBusy,
   supported,
   onConnect,
   onConnectAuthorized,
 }: DeviceStripProps) {
   const { t } = useTranslation();
+  const connected = Boolean(client);
 
   return (
     <Card className="device-strip-card">
@@ -34,10 +37,16 @@ export function DeviceStrip({
           <div>
             <div className="label">{t("device.label")}</div>
             <strong>{deviceLabel}</strong>
+            {connected && (
+              <div className="device-firmware">
+                <span>{t("device.firmwareVersion")}</span>
+                <code>{firmwareVersion || t("device.firmwareUnknown")}</code>
+              </div>
+            )}
           </div>
         </div>
         <div className="device-actions">
-          {authorizedDevices.length > 0 && !client && (
+          {authorizedDevices.length > 0 && !connected && (
             <Button
               type="button"
               variant="outline"

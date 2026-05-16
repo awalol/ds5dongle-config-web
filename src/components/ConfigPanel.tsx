@@ -86,7 +86,7 @@ export function ConfigPanel({ bridge }: ConfigPanelProps) {
             <IntegerControl
               label={`${t("config.inactiveTime")} (${t("config.inactiveTimeUnit")})`}
               value={bridge.draft.inactiveTime}
-              min={5}
+              min={10}
               max={60}
               issue={fieldIssue(bridge.issues, "inactiveTime")}
               onChange={(value) => bridge.setDraftField("inactiveTime", value)}

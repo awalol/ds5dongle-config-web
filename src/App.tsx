@@ -57,6 +57,7 @@ export default function App() {
           authorizedDevices={bridge.authorizedDevices}
           client={bridge.client}
           deviceLabel={bridge.deviceLabel}
+          firmwareVersion={bridge.firmwareVersion}
           isBusy={isBusy}
           supported={bridge.supported}
           onConnect={bridge.connect}

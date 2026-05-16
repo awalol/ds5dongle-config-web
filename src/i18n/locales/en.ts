@@ -18,6 +18,7 @@ export const en = {
     webHidUnavailable: "WebHID unavailable",
     connecting: "Connecting",
     reading: "Reading config",
+    readingFirmware: "Reading firmware version",
     applying: "Applying config",
     saving: "Saving to flash",
     reconnecting: "Reconnecting USB",
@@ -40,6 +41,8 @@ export const en = {
   },
   device: {
     label: "Device",
+    firmwareVersion: "Firmware",
+    firmwareUnknown: "Unknown",
     open: "Open",
     openTitle: "Open the first previously authorized device",
     connect: "Connect",
@@ -100,7 +103,7 @@ export const en = {
   validation: {
     hapticsGain: "Haptics gain must be between 1.0 and 2.0",
     speakerVolume: "Speaker volume must be between 0% and 100%",
-    inactiveTime: "Inactive time must be between 5 and 60 minutes",
+    inactiveTime: "Inactive time must be between 10 and 60 minutes",
     pollingRateMode: "Polling rate mode must be 0, 1, or 2",
     hapticsBufferLength: "Haptics buffer length must be between 16 and 128",
     controllerMode: "Controller mode must be DS5, DSE, or Auto",
@@ -108,6 +111,7 @@ export const en = {
   errors: {
     invalidConfig: "Device returned invalid config: {{issues}}",
     invalidBytes: "Device returned {{count}} bytes, expected at least {{expected}}",
+    configVersionMismatch: "Config version mismatch: this page supports version {{expected}}, device returned version {{actual}}",
     noDeviceSelected: "No DS5 Bridge device was selected",
     unexpectedWebHid: "Unexpected WebHID error",
     disconnected: "Device disconnected",

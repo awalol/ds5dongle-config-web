@@ -1,4 +1,5 @@
-export const CONFIG_BODY_SIZE = 14;
+export const CONFIG_BODY_VERSION = 1;
+export const CONFIG_BODY_SIZE = 15;
 export const FEATURE_REPORT_PAYLOAD_SIZE = 63;
 
 export type PollingRateMode = 0 | 1 | 2;
@@ -50,16 +51,26 @@ export const CONTROLLER_MODE_OPTIONS: Array<{
 export function decodeConfigBody(source: ArrayBuffer | DataView | Uint8Array): ConfigBody {
   const bytes = toUint8Array(source);
   const candidates = bytes.byteLength >= CONFIG_BODY_SIZE + 1 ? [0, 1] : [0];
-  const parsed = candidates.map((offset) => decodeAt(bytes, offset)).filter(Boolean) as ConfigBody[];
-  const valid = parsed.find((config) => validateConfig(config).length === 0);
+  const parsed = candidates
+    .map((offset) => decodeAt(bytes, offset))
+    .filter((candidate): candidate is DecodedConfigCandidate => Boolean(candidate));
+  const versionMatched = parsed.filter(({ version }) => version === CONFIG_BODY_VERSION);
+  const valid = versionMatched.find(({ config }) => validateConfig(config).length === 0);
 
   if (valid) {
-    return valid;
+    return valid.config;
+  }
+
+  if (versionMatched[0]) {
+    throw new ConfigDecodeError("invalidConfig", {
+      issues: validateConfig(versionMatched[0].config).map((issue) => issue.field),
+    });
   }
 
   if (parsed[0]) {
-    throw new ConfigDecodeError("invalidConfig", {
-      issues: validateConfig(parsed[0]).map((issue) => issue.field),
+    throw new ConfigDecodeError("versionMismatch", {
+      actual: uniqueVersions(parsed.map(({ version }) => version)).join(", "),
+      expected: CONFIG_BODY_VERSION,
     });
   }
 
@@ -79,14 +90,15 @@ export function encodeConfigBody(config: ConfigBody): Uint8Array<ArrayBuffer> {
 
   const bytes = new Uint8Array(new ArrayBuffer(CONFIG_BODY_SIZE));
   const view = new DataView(bytes.buffer);
-  view.setFloat32(0, config.hapticsGain, true);
-  view.setFloat32(4, config.speakerVolume, true);
-  view.setUint8(8, config.inactiveTime);
-  view.setUint8(9, config.disableInactiveDisconnect ? 1 : 0);
-  view.setUint8(10, config.disablePicoLed ? 1 : 0);
-  view.setUint8(11, config.pollingRateMode);
-  view.setUint8(12, config.hapticsBufferLength);
-  view.setUint8(13, config.controllerMode);
+  view.setUint8(0, CONFIG_BODY_VERSION);
+  view.setFloat32(1, config.hapticsGain, true);
+  view.setFloat32(5, config.speakerVolume, true);
+  view.setUint8(9, config.inactiveTime);
+  view.setUint8(10, config.disableInactiveDisconnect ? 1 : 0);
+  view.setUint8(11, config.disablePicoLed ? 1 : 0);
+  view.setUint8(12, config.pollingRateMode);
+  view.setUint8(13, config.hapticsBufferLength);
+  view.setUint8(14, config.controllerMode);
   return bytes;
 }
 
@@ -101,7 +113,7 @@ export function validateConfig(config: ConfigBody): ConfigValidationIssue[] {
     issues.push({ field: "speakerVolume" });
   }
 
-  if (!Number.isInteger(config.inactiveTime) || config.inactiveTime < 5 || config.inactiveTime > 60) {
+  if (!Number.isInteger(config.inactiveTime) || config.inactiveTime < 10 || config.inactiveTime > 60) {
     issues.push({ field: "inactiveTime" });
   }
 
@@ -128,7 +140,7 @@ export function normalizeConfig(config: ConfigBody): ConfigBody {
   return {
     hapticsGain: roundToStep(config.hapticsGain, 0.01),
     speakerVolume: clampToStep(config.speakerVolume, -100, 0, 0.01),
-    inactiveTime: clampInteger(config.inactiveTime, 5, 60),
+    inactiveTime: clampInteger(config.inactiveTime, 10, 60),
     disableInactiveDisconnect: Boolean(config.disableInactiveDisconnect),
     disablePicoLed: Boolean(config.disablePicoLed),
     pollingRateMode: clampInteger(config.pollingRateMode, 0, 2) as PollingRateMode,
@@ -163,7 +175,7 @@ export function fieldIssue(
 
 export class ConfigDecodeError extends Error {
   constructor(
-    public readonly code: "invalidConfig" | "invalidBytes",
+    public readonly code: "invalidConfig" | "invalidBytes" | "versionMismatch",
     public readonly values: Record<string, unknown>,
   ) {
     super(code);
@@ -171,22 +183,34 @@ export class ConfigDecodeError extends Error {
   }
 }
 
-function decodeAt(bytes: Uint8Array, offset: number): ConfigBody | null {
+interface DecodedConfigCandidate {
+  version: number;
+  config: ConfigBody;
+}
+
+function decodeAt(bytes: Uint8Array, offset: number): DecodedConfigCandidate | null {
   if (bytes.byteLength - offset < CONFIG_BODY_SIZE) {
     return null;
   }
 
   const view = new DataView(bytes.buffer, bytes.byteOffset + offset, CONFIG_BODY_SIZE);
   return {
-    hapticsGain: view.getFloat32(0, true),
-    speakerVolume: view.getFloat32(4, true),
-    inactiveTime: view.getUint8(8),
-    disableInactiveDisconnect: view.getUint8(9) === 1,
-    disablePicoLed: view.getUint8(10) === 1,
-    pollingRateMode: view.getUint8(11) as PollingRateMode,
-    hapticsBufferLength: view.getUint8(12),
-    controllerMode: view.getUint8(13) as ControllerMode,
+    version: view.getUint8(0),
+    config: {
+      hapticsGain: view.getFloat32(1, true),
+      speakerVolume: view.getFloat32(5, true),
+      inactiveTime: view.getUint8(9),
+      disableInactiveDisconnect: view.getUint8(10) === 1,
+      disablePicoLed: view.getUint8(11) === 1,
+      pollingRateMode: view.getUint8(12) as PollingRateMode,
+      hapticsBufferLength: view.getUint8(13),
+      controllerMode: view.getUint8(14) as ControllerMode,
+    },
   };
+}
+
+function uniqueVersions(versions: number[]): number[] {
+  return [...new Set(versions)];
 }
 
 function toUint8Array(source: ArrayBuffer | DataView | Uint8Array): Uint8Array {

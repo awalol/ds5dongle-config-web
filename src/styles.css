@@ -344,6 +344,23 @@ h2 {
   overflow-wrap: anywhere;
 }
 
+.device-firmware {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-top: 3px;
+  color: var(--muted-foreground);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.device-firmware code {
+  color: var(--app-heading);
+  font-family: inherit;
+  overflow-wrap: anywhere;
+}
+
 .device-icon {
   display: grid;
   width: 38px;
