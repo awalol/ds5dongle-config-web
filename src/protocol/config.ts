@@ -140,7 +140,7 @@ export function normalizeConfig(config: ConfigBody): ConfigBody {
   return {
     hapticsGain: roundToStep(config.hapticsGain, 0.01),
     speakerVolume: clampToStep(config.speakerVolume, -100, 0, 0.01),
-    inactiveTime: clampInteger(config.inactiveTime, 10, 60),
+    inactiveTime: clampInteger(config.inactiveTime, 5, 60),
     disableInactiveDisconnect: Boolean(config.disableInactiveDisconnect),
     disablePicoLed: Boolean(config.disablePicoLed),
     pollingRateMode: clampInteger(config.pollingRateMode, 0, 2) as PollingRateMode,
