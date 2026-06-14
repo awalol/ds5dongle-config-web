@@ -131,6 +131,16 @@ export function ConfigPanel({ bridge }: ConfigPanelProps) {
                   value={bridge.draft.disablePicoLed}
                   onChange={(value) => bridge.setDraftField("disablePicoLed", value)}
                 />
+                <ToggleControl
+                  label={t("config.disableMic")}
+                  value={bridge.draft.disableMic}
+                  onChange={(value) => bridge.setDraftField("disableMic", value)}
+                />
+                <ToggleControl
+                  label={t("config.disableSpeaker")}
+                  value={bridge.draft.disableSpeaker}
+                  onChange={(value) => bridge.setDraftField("disableSpeaker", value)}
+                />
               </div>
             </section>
           </div>

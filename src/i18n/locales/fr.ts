@@ -65,7 +65,7 @@ export const fr = {
         "Ajustez les vibrations de la manette, le volume du haut-parleur, le volume du casque, le gain du haut-parleur et la taille du buffer.",
       power: "Alimentation et indicateurs",
       powerDescription:
-        "Contrôlez la déconnexion en cas d’inactivité et le comportement de la LED du Pico.",
+        "Contrôlez la déconnexion en cas d’inactivité, la LED du Pico et le microphone et le haut-parleur de la manette.",
       performance: "Performances",
       performanceDescription:
         "Choisissez la fréquence d’interrogation des rapports HID.",
@@ -85,6 +85,8 @@ export const fr = {
     disableInactiveDisconnect:
       "Désactiver la déconnexion en cas d’inactivité",
     disablePicoLed: "Désactiver la LED du Pico",
+    disableMic: "Désactiver le microphone",
+    disableSpeaker: "Désactiver le haut-parleur / casque",
     pollingRateMode: "Mode de fréquence d’interrogation",
     audioBufferLength: "Taille du buffer audio",
     controllerMode: "Mode de la manette",

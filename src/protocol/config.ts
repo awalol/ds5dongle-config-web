@@ -1,5 +1,5 @@
-export const CONFIG_BODY_VERSION = 2;
-export const CONFIG_BODY_SIZE = 18;
+export const CONFIG_BODY_VERSION = 3;
+export const CONFIG_BODY_SIZE = 20;
 export const FEATURE_REPORT_PAYLOAD_SIZE = 63;
 
 export type PollingRateMode = 0 | 1 | 2;
@@ -20,6 +20,8 @@ export interface ConfigBody {
   lockVolume: boolean;
   disableUsbSn: boolean;
   psShortcutEnabled: boolean;
+  disableMic: boolean;
+  disableSpeaker: boolean;
 }
 
 export interface ConfigValidationIssue {
@@ -41,6 +43,8 @@ export const DEFAULT_CONFIG: ConfigBody = {
   lockVolume: false,
   disableUsbSn: false,
   psShortcutEnabled: false,
+  disableMic: false,
+  disableSpeaker: false,
 };
 
 export const POLLING_RATE_OPTIONS: Array<{
@@ -117,6 +121,8 @@ export function encodeConfigBody(config: ConfigBody): Uint8Array<ArrayBuffer> {
   view.setUint8(15, config.lockVolume ? 1 : 0);
   view.setUint8(16, config.disableUsbSn ? 1 : 0);
   view.setUint8(17, config.psShortcutEnabled ? 1 : 0);
+  view.setUint8(18, config.disableMic ? 1 : 0);
+  view.setUint8(19, config.disableSpeaker ? 1 : 0);
   return bytes;
 }
 
@@ -180,6 +186,8 @@ export function normalizeConfig(config: ConfigBody): ConfigBody {
     lockVolume: Boolean(config.lockVolume),
     disableUsbSn: Boolean(config.disableUsbSn),
     psShortcutEnabled: Boolean(config.psShortcutEnabled),
+    disableMic: Boolean(config.disableMic),
+    disableSpeaker: Boolean(config.disableSpeaker),
   };
 }
 
@@ -202,7 +210,9 @@ export function configsEqual(left: ConfigBody | null, right: ConfigBody | null):
     left.controllerMode === right.controllerMode &&
     left.lockVolume === right.lockVolume &&
     left.disableUsbSn === right.disableUsbSn &&
-    left.psShortcutEnabled === right.psShortcutEnabled
+    left.psShortcutEnabled === right.psShortcutEnabled &&
+    left.disableMic === right.disableMic &&
+    left.disableSpeaker === right.disableSpeaker
   );
 }
 
@@ -251,6 +261,8 @@ function decodeAt(bytes: Uint8Array, offset: number): DecodedConfigCandidate | n
       lockVolume: view.getUint8(15) === 1,
       disableUsbSn: view.getUint8(16) === 1,
       psShortcutEnabled: view.getUint8(17) === 1,
+      disableMic: view.getUint8(18) === 1,
+      disableSpeaker: view.getUint8(19) === 1,
     },
   };
 }
