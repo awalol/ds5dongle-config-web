@@ -1,5 +1,5 @@
-export const CONFIG_BODY_VERSION = 1;
-export const CONFIG_BODY_SIZE = 15;
+export const CONFIG_BODY_VERSION = 5;
+export const CONFIG_BODY_SIZE = 18;
 export const FEATURE_REPORT_PAYLOAD_SIZE = 63;
 
 export type PollingRateMode = 0 | 1 | 2;
@@ -8,12 +8,18 @@ export type ControllerMode = 0 | 1 | 2;
 export interface ConfigBody {
   hapticsGain: number;
   speakerVolume: number;
+  headsetVolume: number;
+  speakerGain: number;
   inactiveTime: number;
-  disableInactiveDisconnect: boolean;
   disablePicoLed: boolean;
   pollingRateMode: PollingRateMode;
-  hapticsBufferLength: number;
+  audioBufferLength: number;
   controllerMode: ControllerMode;
+  enableUsbSn: boolean;
+  psShortcutEnabled: boolean;
+  disableMic: boolean;
+  disableSpeaker: boolean;
+  enableWake: boolean;
 }
 
 export interface ConfigValidationIssue {
@@ -23,12 +29,18 @@ export interface ConfigValidationIssue {
 export const DEFAULT_CONFIG: ConfigBody = {
   hapticsGain: 1,
   speakerVolume: 0,
+  headsetVolume: 0,
+  speakerGain: 2,
   inactiveTime: 10,
-  disableInactiveDisconnect: false,
   disablePicoLed: false,
   pollingRateMode: 0,
-  hapticsBufferLength: 64,
+  audioBufferLength: 64,
   controllerMode: 2,
+  enableUsbSn: true,
+  psShortcutEnabled: false,
+  disableMic: false,
+  disableSpeaker: false,
+  enableWake: false,
 };
 
 export const POLLING_RATE_OPTIONS: Array<{
@@ -92,13 +104,19 @@ export function encodeConfigBody(config: ConfigBody): Uint8Array<ArrayBuffer> {
   const view = new DataView(bytes.buffer);
   view.setUint8(0, CONFIG_BODY_VERSION);
   view.setFloat32(1, config.hapticsGain, true);
-  view.setFloat32(5, config.speakerVolume, true);
-  view.setUint8(9, config.inactiveTime);
-  view.setUint8(10, config.disableInactiveDisconnect ? 1 : 0);
-  view.setUint8(11, config.disablePicoLed ? 1 : 0);
-  view.setUint8(12, config.pollingRateMode);
-  view.setUint8(13, config.hapticsBufferLength);
-  view.setUint8(14, config.controllerMode);
+  view.setUint8(5, config.speakerVolume);
+  view.setUint8(6, config.headsetVolume);
+  view.setUint8(7, config.speakerGain);
+  view.setUint8(8, config.inactiveTime);
+  view.setUint8(9, config.disablePicoLed ? 1 : 0);
+  view.setUint8(10, config.pollingRateMode);
+  view.setUint8(11, config.audioBufferLength);
+  view.setUint8(12, config.controllerMode);
+  view.setUint8(13, config.enableUsbSn ? 1 : 0);
+  view.setUint8(14, config.psShortcutEnabled ? 1 : 0);
+  view.setUint8(15, config.disableMic ? 1 : 0);
+  view.setUint8(16, config.disableSpeaker ? 1 : 0);
+  view.setUint8(17, config.enableWake ? 1 : 0);
   return bytes;
 }
 
@@ -109,11 +127,19 @@ export function validateConfig(config: ConfigBody): ConfigValidationIssue[] {
     issues.push({ field: "hapticsGain" });
   }
 
-  if (!Number.isFinite(config.speakerVolume) || config.speakerVolume < -100 || config.speakerVolume > 0) {
+  if (!Number.isInteger(config.speakerVolume) || config.speakerVolume < 0 || config.speakerVolume > 127) {
     issues.push({ field: "speakerVolume" });
   }
 
-  if (!Number.isInteger(config.inactiveTime) || config.inactiveTime < 5 || config.inactiveTime > 60) {
+  if (!Number.isInteger(config.headsetVolume) || config.headsetVolume < 0 || config.headsetVolume > 127) {
+    issues.push({ field: "headsetVolume" });
+  }
+
+  if (!Number.isInteger(config.speakerGain) || config.speakerGain < 0 || config.speakerGain > 7) {
+    issues.push({ field: "speakerGain" });
+  }
+
+  if (!Number.isInteger(config.inactiveTime) || config.inactiveTime < 0 || config.inactiveTime > 60) {
     issues.push({ field: "inactiveTime" });
   }
 
@@ -122,11 +148,11 @@ export function validateConfig(config: ConfigBody): ConfigValidationIssue[] {
   }
 
   if (
-    !Number.isInteger(config.hapticsBufferLength) ||
-    config.hapticsBufferLength < 16 ||
-    config.hapticsBufferLength > 128
+    !Number.isInteger(config.audioBufferLength) ||
+    config.audioBufferLength < 16 ||
+    config.audioBufferLength > 127
   ) {
-    issues.push({ field: "hapticsBufferLength" });
+    issues.push({ field: "audioBufferLength" });
   }
 
   if (!Number.isInteger(config.controllerMode) || config.controllerMode < 0 || config.controllerMode > 2) {
@@ -139,13 +165,19 @@ export function validateConfig(config: ConfigBody): ConfigValidationIssue[] {
 export function normalizeConfig(config: ConfigBody): ConfigBody {
   return {
     hapticsGain: roundToStep(config.hapticsGain, 0.01),
-    speakerVolume: clampToStep(config.speakerVolume, -100, 0, 0.01),
-    inactiveTime: clampInteger(config.inactiveTime, 5, 60),
-    disableInactiveDisconnect: Boolean(config.disableInactiveDisconnect),
+    speakerVolume: clampInteger(config.speakerVolume, 0, 127),
+    headsetVolume: clampInteger(config.headsetVolume, 0, 127),
+    speakerGain: clampInteger(config.speakerGain, 0, 7),
+    inactiveTime: clampInteger(config.inactiveTime, 0, 60),
     disablePicoLed: Boolean(config.disablePicoLed),
     pollingRateMode: clampInteger(config.pollingRateMode, 0, 2) as PollingRateMode,
-    hapticsBufferLength: clampInteger(config.hapticsBufferLength, 16, 128),
+    audioBufferLength: clampInteger(config.audioBufferLength, 16, 127),
     controllerMode: clampInteger(config.controllerMode, 0, 2) as ControllerMode,
+    enableUsbSn: Boolean(config.enableUsbSn),
+    psShortcutEnabled: Boolean(config.psShortcutEnabled),
+    disableMic: Boolean(config.disableMic),
+    disableSpeaker: Boolean(config.disableSpeaker),
+    enableWake: Boolean(config.enableWake),
   };
 }
 
@@ -156,13 +188,19 @@ export function configsEqual(left: ConfigBody | null, right: ConfigBody | null):
 
   return (
     Math.abs(left.hapticsGain - right.hapticsGain) < 0.001 &&
-    Math.abs(left.speakerVolume - right.speakerVolume) < 0.001 &&
+    left.speakerVolume === right.speakerVolume &&
+    left.headsetVolume === right.headsetVolume &&
+    left.speakerGain === right.speakerGain &&
     left.inactiveTime === right.inactiveTime &&
-    left.disableInactiveDisconnect === right.disableInactiveDisconnect &&
     left.disablePicoLed === right.disablePicoLed &&
     left.pollingRateMode === right.pollingRateMode &&
-    left.hapticsBufferLength === right.hapticsBufferLength &&
-    left.controllerMode === right.controllerMode
+    left.audioBufferLength === right.audioBufferLength &&
+    left.controllerMode === right.controllerMode &&
+    left.enableUsbSn === right.enableUsbSn &&
+    left.psShortcutEnabled === right.psShortcutEnabled &&
+    left.disableMic === right.disableMic &&
+    left.disableSpeaker === right.disableSpeaker &&
+    left.enableWake === right.enableWake
   );
 }
 
@@ -198,13 +236,19 @@ function decodeAt(bytes: Uint8Array, offset: number): DecodedConfigCandidate | n
     version: view.getUint8(0),
     config: {
       hapticsGain: view.getFloat32(1, true),
-      speakerVolume: view.getFloat32(5, true),
-      inactiveTime: view.getUint8(9),
-      disableInactiveDisconnect: view.getUint8(10) === 1,
-      disablePicoLed: view.getUint8(11) === 1,
-      pollingRateMode: view.getUint8(12) as PollingRateMode,
-      hapticsBufferLength: view.getUint8(13),
-      controllerMode: view.getUint8(14) as ControllerMode,
+      speakerVolume: view.getUint8(5),
+      headsetVolume: view.getUint8(6),
+      speakerGain: view.getUint8(7),
+      inactiveTime: view.getUint8(8),
+      disablePicoLed: view.getUint8(9) === 1,
+      pollingRateMode: view.getUint8(10) as PollingRateMode,
+      audioBufferLength: view.getUint8(11),
+      controllerMode: view.getUint8(12) as ControllerMode,
+      enableUsbSn: view.getUint8(13) === 1,
+      psShortcutEnabled: view.getUint8(14) === 1,
+      disableMic: view.getUint8(15) === 1,
+      disableSpeaker: view.getUint8(16) === 1,
+      enableWake: view.getUint8(17) === 1,
     },
   };
 }
@@ -231,8 +275,4 @@ function roundToStep(value: number, step: number): number {
 
 function clampInteger(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, Math.round(value)));
-}
-
-function clampToStep(value: number, min: number, max: number, step: number): number {
-  return Math.min(max, Math.max(min, roundToStep(value, step)));
 }

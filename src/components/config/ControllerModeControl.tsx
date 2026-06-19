@@ -1,14 +1,17 @@
 import { useTranslation } from "react-i18next";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CONTROLLER_MODE_OPTIONS, ControllerMode } from "../../protocol/config";
+import { ConfigHelpButton } from "./ConfigHelpButton";
 
 interface ControllerModeControlProps {
   value: ControllerMode;
+  helpContent?: string;
   onChange: (value: ControllerMode) => void;
 }
 
-export function ControllerModeControl({ value, onChange }: ControllerModeControlProps) {
+export function ControllerModeControl({ value, helpContent, onChange }: ControllerModeControlProps) {
   const { t } = useTranslation();
+  const label = t("config.controllerMode");
   const optionLabels: Record<ControllerMode, string> = {
     0: t("config.controllerModeOptions.ds5"),
     1: t("config.controllerModeOptions.dse"),
@@ -17,7 +20,10 @@ export function ControllerModeControl({ value, onChange }: ControllerModeControl
 
   return (
     <div className="control-row">
-      <strong>{t("config.controllerMode")}</strong>
+      <span className="control-label">
+        <strong>{label}</strong>
+        {helpContent && <ConfigHelpButton title={label} content={helpContent} />}
+      </span>
       <Tabs
         value={String(value)}
         onValueChange={(next) => onChange(Number(next) as ControllerMode)}

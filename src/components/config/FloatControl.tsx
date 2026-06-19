@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { ConfigValidationIssue } from "../../protocol/config";
+import { ConfigHelpButton } from "./ConfigHelpButton";
 
 interface FloatControlProps {
   label: string;
@@ -18,6 +19,7 @@ interface FloatControlProps {
   valueToDisplay?: (value: number) => number;
   displayToValue?: (value: number) => number;
   fractionDigits?: number;
+  helpContent?: string;
   issue?: ConfigValidationIssue;
   onChange: (value: number) => void;
 }
@@ -36,6 +38,7 @@ export function FloatControl({
   valueToDisplay,
   displayToValue,
   fractionDigits = 2,
+  helpContent,
   issue,
   onChange,
 }: FloatControlProps) {
@@ -58,11 +61,14 @@ export function FloatControl({
   };
 
   return (
-    <label className={`control-row ${issue ? "invalid" : ""}`}>
-      <span>
-        <strong>{label}</strong>
+    <div className={`control-row ${issue ? "invalid" : ""}`}>
+      <div>
+        <span className="control-label">
+          <strong>{label}</strong>
+          {helpContent && <ConfigHelpButton title={label} content={helpContent} />}
+        </span>
         {issue && <small>{t(`validation.${issue.field}`)}</small>}
-      </span>
+      </div>
       <div className="range-inputs">
         <Slider
           min={displayMin ?? toDisplay(min)}
@@ -82,6 +88,6 @@ export function FloatControl({
           className="font-bold"
         />
       </div>
-    </label>
+    </div>
   );
 }

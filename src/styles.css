@@ -552,6 +552,94 @@ h2 {
   line-height: 1.25;
 }
 
+.control-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.config-help-button {
+  display: inline-grid;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--muted-foreground);
+  background: color-mix(in srgb, var(--card) 76%, transparent);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0;
+}
+
+.config-help-button:hover,
+.config-help-button:focus-visible {
+  color: var(--primary);
+  background: var(--card);
+}
+
+.help-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgb(15 23 42 / 48%);
+}
+
+.help-dialog {
+  width: min(420px, 100%);
+  max-height: min(68vh, 520px);
+  overflow: auto;
+  padding: 16px;
+  color: var(--foreground);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 24px 70px rgb(15 23 42 / 28%);
+}
+
+.help-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.help-dialog h2 {
+  color: var(--app-heading);
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.help-dialog p {
+  margin: 12px 0 0;
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.help-dialog-close {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--muted-foreground);
+  background: var(--secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0;
+}
+
+.help-dialog-close:hover,
+.help-dialog-close:focus-visible {
+  color: var(--primary);
+  background: var(--card);
+}
+
 .control-row small {
   display: block;
   margin-top: 5px;

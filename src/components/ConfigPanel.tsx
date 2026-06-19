@@ -43,31 +43,45 @@ export function ConfigPanel({ bridge }: ConfigPanelProps) {
               min={1}
               max={2}
               step={0.05}
+              helpContent={t("config.help.hapticsGain")}
               issue={fieldIssue(bridge.issues, "hapticsGain")}
               onChange={(value) => bridge.setDraftField("hapticsGain", value)}
             />
-            <FloatControl
-              label={`${t("config.speakerVolume")} (%)`}
+            <IntegerControl
+              label={t("config.speakerVolume")}
               value={bridge.draft.speakerVolume}
-              min={-100}
-              max={0}
-              step={0.01}
-              displayMin={0}
-              displayMax={100}
-              displayStep={1}
-              valueToDisplay={speakerVolumeToPercent}
-              displayToValue={percentToSpeakerVolume}
-              fractionDigits={0}
+              min={0}
+              max={127}
+              helpContent={t("config.help.speakerVolume")}
               issue={fieldIssue(bridge.issues, "speakerVolume")}
               onChange={(value) => bridge.setDraftField("speakerVolume", value)}
             />
             <IntegerControl
-              label={t("config.hapticsBufferLength")}
-              value={bridge.draft.hapticsBufferLength}
+              label={t("config.headsetVolume")}
+              value={bridge.draft.headsetVolume}
+              min={0}
+              max={127}
+              helpContent={t("config.help.headsetVolume")}
+              issue={fieldIssue(bridge.issues, "headsetVolume")}
+              onChange={(value) => bridge.setDraftField("headsetVolume", value)}
+            />
+            <IntegerControl
+              label={t("config.speakerGain")}
+              value={bridge.draft.speakerGain}
+              min={0}
+              max={7}
+              helpContent={t("config.help.speakerGain")}
+              issue={fieldIssue(bridge.issues, "speakerGain")}
+              onChange={(value) => bridge.setDraftField("speakerGain", value)}
+            />
+            <IntegerControl
+              label={t("config.audioBufferLength")}
+              value={bridge.draft.audioBufferLength}
               min={16}
-              max={128}
-              issue={fieldIssue(bridge.issues, "hapticsBufferLength")}
-              onChange={(value) => bridge.setDraftField("hapticsBufferLength", value)}
+              max={127}
+              helpContent={t("config.help.audioBufferLength")}
+              issue={fieldIssue(bridge.issues, "audioBufferLength")}
+              onChange={(value) => bridge.setDraftField("audioBufferLength", value)}
             />
           </div>
         </section>
@@ -86,20 +100,35 @@ export function ConfigPanel({ bridge }: ConfigPanelProps) {
             <IntegerControl
               label={`${t("config.inactiveTime")} (${t("config.inactiveTimeUnit")})`}
               value={bridge.draft.inactiveTime}
-              min={5}
+              min={0}
               max={60}
+              helpContent={t("config.help.inactiveTime")}
               issue={fieldIssue(bridge.issues, "inactiveTime")}
               onChange={(value) => bridge.setDraftField("inactiveTime", value)}
             />
             <ToggleControl
-              label={t("config.disableInactiveDisconnect")}
-              value={bridge.draft.disableInactiveDisconnect}
-              onChange={(value) => bridge.setDraftField("disableInactiveDisconnect", value)}
-            />
-            <ToggleControl
               label={t("config.disablePicoLed")}
               value={bridge.draft.disablePicoLed}
+              helpContent={t("config.help.disablePicoLed")}
               onChange={(value) => bridge.setDraftField("disablePicoLed", value)}
+            />
+            <ToggleControl
+              label={t("config.disableMic")}
+              value={bridge.draft.disableMic}
+              helpContent={t("config.help.disableMic")}
+              onChange={(value) => bridge.setDraftField("disableMic", value)}
+            />
+            <ToggleControl
+              label={t("config.disableSpeaker")}
+              value={bridge.draft.disableSpeaker}
+              helpContent={t("config.help.disableSpeaker")}
+              onChange={(value) => bridge.setDraftField("disableSpeaker", value)}
+            />
+            <ToggleControl
+              label={t("config.enableWake")}
+              value={bridge.draft.enableWake}
+              helpContent={t("config.help.enableWake")}
+              onChange={(value) => bridge.setDraftField("enableWake", value)}
             />
           </div>
         </section>
@@ -117,6 +146,7 @@ export function ConfigPanel({ bridge }: ConfigPanelProps) {
           <div className="control-stack compact-stack">
             <PollingRateControl
               value={bridge.draft.pollingRateMode}
+              helpContent={t("config.help.pollingRateMode")}
               onChange={(value) => bridge.setDraftField("pollingRateMode", value)}
             />
           </div>
@@ -135,27 +165,24 @@ export function ConfigPanel({ bridge }: ConfigPanelProps) {
           <div className="control-stack compact-stack">
             <ControllerModeControl
               value={bridge.draft.controllerMode}
+              helpContent={t("config.help.controllerMode")}
               onChange={(value) => bridge.setDraftField("controllerMode", value)}
+            />
+            <ToggleControl
+              label={t("config.enableUsbSn")}
+              value={bridge.draft.enableUsbSn}
+              helpContent={t("config.help.enableUsbSn")}
+              onChange={(value) => bridge.setDraftField("enableUsbSn", value)}
+            />
+            <ToggleControl
+              label={t("config.psShortcutEnabled")}
+              value={bridge.draft.psShortcutEnabled}
+              helpContent={t("config.help.psShortcutEnabled")}
+              onChange={(value) => bridge.setDraftField("psShortcutEnabled", value)}
             />
           </div>
         </section>
       </CardContent>
     </Card>
   );
-}
-
-function speakerVolumeToPercent(value: number): number {
-  if (value <= -100) {
-    return 0;
-  }
-
-  return Math.min(100, Math.max(0, 100 * 10 ** (value / 20)));
-}
-
-function percentToSpeakerVolume(value: number): number {
-  if (value <= 0) {
-    return -100;
-  }
-
-  return Math.min(0, Math.max(-100, 20 * Math.log10(value / 100)));
 }
