@@ -14,11 +14,17 @@ interface HIDConnectionEvent extends Event {
   readonly device: HIDDevice;
 }
 
+interface HIDCollectionInfo {
+  readonly usagePage: number;
+  readonly usage: number;
+}
+
 interface HIDDevice extends EventTarget {
   readonly opened: boolean;
   readonly vendorId: number;
   readonly productId: number;
   readonly productName: string;
+  readonly collections: readonly HIDCollectionInfo[];
   open(): Promise<void>;
   close(): Promise<void>;
   forget?(): Promise<void>;

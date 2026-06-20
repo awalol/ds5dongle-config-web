@@ -10,6 +10,8 @@ export const SUPPORTED_PRODUCT_IDS = [0x0ce6, 0x0df2] as const;
 export const NO_DEVICE_SELECTED_ERROR = "noDeviceSelected";
 export const WEBHID_UNAVAILABLE_ERROR = "webHidUnavailable";
 
+const GENERIC_DESKTOP_USAGE_PAGE = 0x01;
+const GAMEPAD_USAGE = 0x05;
 const REPORT_SET_CONFIG = 0xf6;
 const REPORT_GET_CONFIG = 0xf7;
 const REPORT_GET_FIRMWARE_VERSION = 0xf8;
@@ -32,7 +34,11 @@ export class Ds5BridgeHidClient {
   constructor(public readonly device: HIDDevice) {}
 
   static isSupportedDevice(device: HIDDevice): boolean {
-    return device.vendorId === SONY_VENDOR_ID && SUPPORTED_PRODUCT_IDS.includes(device.productId as 0x0ce6 | 0x0df2);
+    return (
+      device.vendorId === SONY_VENDOR_ID &&
+      SUPPORTED_PRODUCT_IDS.includes(device.productId as 0x0ce6 | 0x0df2) &&
+      device.collections.some(isGamepadCollection)
+    );
   }
 
   static async requestDevice(): Promise<Ds5BridgeHidClient> {
@@ -41,6 +47,8 @@ export class Ds5BridgeHidClient {
       filters: SUPPORTED_PRODUCT_IDS.map((productId) => ({
         vendorId: SONY_VENDOR_ID,
         productId,
+        usagePage: GENERIC_DESKTOP_USAGE_PAGE,
+        usage: GAMEPAD_USAGE,
       })),
     });
 
@@ -125,6 +133,10 @@ function getHid(): HID {
   }
 
   return navigator.hid;
+}
+
+function isGamepadCollection(collection: HIDCollectionInfo): boolean {
+  return collection.usagePage === GENERIC_DESKTOP_USAGE_PAGE && collection.usage === GAMEPAD_USAGE;
 }
 
 function commandReport(command: number): Uint8Array<ArrayBuffer> {
