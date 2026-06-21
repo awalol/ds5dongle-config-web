@@ -227,6 +227,44 @@ button:disabled {
   color: var(--muted-foreground);
 }
 
+.language-select-wrapper {
+  position: relative;
+}
+
+.language-select {
+  width: 132px;
+  height: 36px;
+  padding: 0 30px 0 12px;
+  color: var(--foreground);
+  background: var(--muted);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.language-select option {
+  color: var(--foreground);
+  background: var(--background);
+}
+
+.language-select:focus-visible {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 34%, transparent);
+}
+
+.language-select-chevron {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  color: var(--muted-foreground);
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
 .eyebrow,
 .label {
   color: var(--app-label);

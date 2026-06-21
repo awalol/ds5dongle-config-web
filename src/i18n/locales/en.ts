@@ -7,6 +7,7 @@ export const en = {
     label: "Language",
     english: "English",
     chinese: "中文",
+    french: "Français",
   },
   theme: {
     label: "Theme",

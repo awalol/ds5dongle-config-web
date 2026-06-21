@@ -7,6 +7,7 @@ export const zh = {
     label: "语言",
     english: "English",
     chinese: "中文",
+    french: "Français",
   },
   theme: {
     label: "主题",
