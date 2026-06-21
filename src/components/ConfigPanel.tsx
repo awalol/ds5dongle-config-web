@@ -102,6 +102,13 @@ export function ConfigPanel({ bridge }: ConfigPanelProps) {
                 disabled={controlsDisabled}
                 onChange={(value) => bridge.setDraftField("audioBufferLength", value)}
               />
+              <ToggleControl
+                label={t("config.lockVolume")}
+                value={bridge.draft.lockVolume}
+                helpContent={t("config.help.lockVolume")}
+                disabled={controlsDisabled}
+                onChange={(value) => bridge.setDraftField("lockVolume", value)}
+              />
             </div>
           </section>
 

@@ -71,7 +71,8 @@ export const en = {
     title: "Configuration",
     sections: {
       feedback: "Feedback output",
-      feedbackDescription: "Tune controller haptics, speaker level, headset level, speaker gain, trigger feedback, and buffer size.",
+      feedbackDescription:
+        "Tune controller haptics, speaker level, headset level, speaker gain, trigger feedback, buffer size, and volume lock.",
       power: "Power & indicators",
       powerDescription: "Control inactive disconnect, the Pico LED, the controller microphone and speaker, and USB wake.",
       performance: "Performance",
@@ -92,6 +93,7 @@ export const en = {
     enableWake: "Wake host on PS press",
     pollingRateMode: "Polling rate mode",
     audioBufferLength: "Audio buffer length",
+    lockVolume: "Lock volume",
     controllerMode: "Controller mode",
     enableUsbSn: "Enable USB serial number",
     psShortcutEnabled: "PS button = Xbox Guide",
@@ -117,6 +119,7 @@ export const en = {
         "0: Auto mode. Higher values reduce adaptive trigger feedback more.\nCurrent testing shows the reduction mainly affects automatic rifle triggers; other effects are less noticeable.",
       audioBufferLength:
         "Lower values reduce latency, but may cause occasional audio stutters. Higher values are more stable. Used for: HD rumble, speaker, and headphone jack.",
+      lockVolume: "Ignore volume settings from games or software.",
       inactiveTime: "Idle auto-disconnect\n0 disables it.",
       disablePicoLed: "Turns off the always-on PICO LED. It will still blink when the controller battery is low.",
       disableMic: "Disable microphone.",

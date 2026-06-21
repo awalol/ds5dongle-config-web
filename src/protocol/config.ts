@@ -1,5 +1,5 @@
 export const CONFIG_BODY_VERSION = 5;
-export const CONFIG_BODY_SIZE = 19;
+export const CONFIG_BODY_SIZE = 20;
 export const FEATURE_REPORT_PAYLOAD_SIZE = 63;
 
 export type PollingRateMode = 0 | 1 | 2;
@@ -21,6 +21,7 @@ export interface ConfigBody {
   disableSpeaker: boolean;
   enableWake: boolean;
   triggerReduce: number;
+  lockVolume: boolean;
 }
 
 export interface ConfigValidationIssue {
@@ -43,6 +44,7 @@ export const DEFAULT_CONFIG: ConfigBody = {
   disableSpeaker: false,
   enableWake: false,
   triggerReduce: 0,
+  lockVolume: false,
 };
 
 export const POLLING_RATE_OPTIONS: Array<{
@@ -120,6 +122,7 @@ export function encodeConfigBody(config: ConfigBody): Uint8Array<ArrayBuffer> {
   view.setUint8(16, config.disableSpeaker ? 1 : 0);
   view.setUint8(17, config.enableWake ? 1 : 0);
   view.setUint8(18, config.triggerReduce);
+  view.setUint8(19, config.lockVolume ? 1 : 0);
   return bytes;
 }
 
@@ -186,6 +189,7 @@ export function normalizeConfig(config: ConfigBody): ConfigBody {
     disableSpeaker: Boolean(config.disableSpeaker),
     enableWake: Boolean(config.enableWake),
     triggerReduce: clampInteger(config.triggerReduce, 0, 10),
+    lockVolume: Boolean(config.lockVolume),
   };
 }
 
@@ -209,7 +213,8 @@ export function configsEqual(left: ConfigBody | null, right: ConfigBody | null):
     left.disableMic === right.disableMic &&
     left.disableSpeaker === right.disableSpeaker &&
     left.enableWake === right.enableWake &&
-    left.triggerReduce === right.triggerReduce
+    left.triggerReduce === right.triggerReduce &&
+    left.lockVolume === right.lockVolume
   );
 }
 
@@ -259,6 +264,7 @@ function decodeAt(bytes: Uint8Array, offset: number): DecodedConfigCandidate | n
       disableSpeaker: view.getUint8(16) === 1,
       enableWake: view.getUint8(17) === 1,
       triggerReduce: view.getUint8(18),
+      lockVolume: view.getUint8(19) === 1,
     },
   };
 }
