@@ -22,6 +22,10 @@ function bridgeWithAudioSelection(writes: FieldWrite): UseDs5BridgeResult {
     authorizedDevices: [],
     config: draft,
     draft,
+    hasValidSnapshot: true,
+    batteryFeedbackSupported: true,
+    batteryFeedbackApplied: false,
+    batteryFeedbackDraft: false,
     issues: [],
     saveState: "idle",
     operation: null,
@@ -32,6 +36,7 @@ function bridgeWithAudioSelection(writes: FieldWrite): UseDs5BridgeResult {
     isDefaultConfig: false,
     needsUsbReconnect: false,
     setDraftField: (field, value) => writes(field, value),
+    setBatteryFeedbackDraft: () => {},
     refreshAuthorizedDevices: async () => {},
     connect: async () => {},
     connectAuthorized: async () => {},
@@ -110,5 +115,36 @@ describe("ConfigPanel", () => {
       "250 Hz", "500 Hz", "Real-time", "1000 Hz",
     ]);
     expect(tabList.classList.contains("grid-cols-2")).toBe(true);
+  });
+
+  it("shows one battery feedback switch next to the independent Pico LED switch", () => {
+    const writes = vi.fn((_field: keyof ConfigBody, _value: ConfigBody[keyof ConfigBody]) => {});
+    const batteryWrite = vi.fn();
+    const bridge = { ...bridgeWithAudioSelection(writes), setBatteryFeedbackDraft: batteryWrite };
+    render(<ConfigPanel bridge={bridge} />);
+
+    const pico = controlSwitch("Disable Pico LED");
+    const battery = controlSwitch("Controller battery feedback");
+    expect(screen.getAllByText("Controller battery feedback")).toHaveLength(1);
+    expect(battery.hasAttribute("disabled")).toBe(false);
+    expect(pico.compareDocumentPosition(battery) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    fireEvent.click(battery);
+    expect(batteryWrite).toHaveBeenCalledWith(true);
+    expect(writes).not.toHaveBeenCalled();
+    fireEvent.click(pico);
+    expect(writes).toHaveBeenCalledWith("disablePicoLed", true);
+  });
+
+  it("disables battery feedback with an explanation for old firmware or an invalid snapshot", () => {
+    const writes = vi.fn((_field: keyof ConfigBody, _value: ConfigBody[keyof ConfigBody]) => {});
+    const bridge = bridgeWithAudioSelection(writes);
+    const view = render(<ConfigPanel bridge={{ ...bridge, batteryFeedbackSupported: false }} />);
+    expect(controlSwitch("Controller battery feedback").hasAttribute("disabled")).toBe(true);
+    expect(screen.getByText("Requires firmware with battery feedback support.")).toBeTruthy();
+    expect(controlSwitch("Disable Pico LED").hasAttribute("disabled")).toBe(false);
+
+    view.rerender(<ConfigPanel bridge={{ ...bridge, hasValidSnapshot: false }} />);
+    expect(controlSwitch("Disable Pico LED").hasAttribute("disabled")).toBe(true);
+    expect(controlSwitch("Controller battery feedback").hasAttribute("disabled")).toBe(true);
   });
 });

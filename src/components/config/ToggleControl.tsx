@@ -6,11 +6,12 @@ interface ToggleControlProps {
   label: string;
   value: boolean;
   helpContent?: string;
+  disabledReason?: string;
   disabled?: boolean;
   onChange: (value: boolean) => void;
 }
 
-export function ToggleControl({ label, value, helpContent, disabled = false, onChange }: ToggleControlProps) {
+export function ToggleControl({ label, value, helpContent, disabledReason, disabled = false, onChange }: ToggleControlProps) {
   const { t } = useTranslation();
 
   return (
@@ -18,6 +19,7 @@ export function ToggleControl({ label, value, helpContent, disabled = false, onC
       <span className="control-label">
         <strong>{label}</strong>
         {helpContent && <ConfigHelpButton title={label} content={helpContent} />}
+        {disabled && disabledReason && <small>{disabledReason}</small>}
       </span>
       <Switch
         checked={value}

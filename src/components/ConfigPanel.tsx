@@ -15,7 +15,7 @@ interface ConfigPanelProps {
 
 export function ConfigPanel({ bridge }: ConfigPanelProps) {
   const { t } = useTranslation();
-  const controlsDisabled = !bridge.isConnected;
+  const controlsDisabled = !bridge.isConnected || !bridge.hasValidSnapshot;
 
   return (
     <Card className="panel config-panel">
@@ -154,6 +154,15 @@ export function ConfigPanel({ bridge }: ConfigPanelProps) {
                 helpContent={t("config.help.disablePicoLed")}
                 disabled={controlsDisabled}
                 onChange={(value) => bridge.setDraftField("disablePicoLed", value)}
+              />
+              <ToggleControl
+                label={t("config.batteryFeedback")}
+                value={bridge.batteryFeedbackDraft}
+                helpContent={t("config.help.batteryFeedback")}
+                disabled={controlsDisabled || !bridge.batteryFeedbackSupported}
+                disabledReason={!bridge.batteryFeedbackSupported && bridge.hasValidSnapshot
+                  ? t("config.batteryFeedbackUnavailable") : undefined}
+                onChange={bridge.setBatteryFeedbackDraft}
               />
               <ToggleControl
                 label={t("config.disableMic")}

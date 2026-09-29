@@ -71,16 +71,25 @@ export const CONTROLLER_MODE_OPTIONS: Array<{
 ];
 
 export function decodeConfigBody(source: ArrayBuffer | DataView | Uint8Array): ConfigBody {
+  return decodeConfigBodyWithOffset(source).config;
+}
+
+export function decodeConfigBodyWithOffset(
+  source: ArrayBuffer | DataView | Uint8Array,
+): { config: ConfigBody; offset: number } {
   const bytes = toUint8Array(source);
   const candidates = bytes.byteLength >= CONFIG_BODY_SIZE + 1 ? [0, 1] : [0];
   const parsed = candidates
-    .map((offset) => decodeAt(bytes, offset))
+    .map((offset) => {
+      const candidate = decodeAt(bytes, offset);
+      return candidate ? { ...candidate, offset } : null;
+    })
     .filter((candidate): candidate is DecodedConfigCandidate => Boolean(candidate));
   const versionMatched = parsed.filter(({ version }) => version === CONFIG_BODY_VERSION);
   const valid = versionMatched.find(({ config }) => validateConfig(config).length === 0);
 
   if (valid) {
-    return valid.config;
+    return { config: valid.config, offset: valid.offset };
   }
 
   if (versionMatched[0]) {
@@ -270,9 +279,10 @@ export class ConfigDecodeError extends Error {
 interface DecodedConfigCandidate {
   version: number;
   config: ConfigBody;
+  offset: number;
 }
 
-function decodeAt(bytes: Uint8Array, offset: number): DecodedConfigCandidate | null {
+function decodeAt(bytes: Uint8Array, offset: number): Omit<DecodedConfigCandidate, "offset"> | null {
   if (bytes.byteLength - offset < CONFIG_BODY_SIZE) {
     return null;
   }
