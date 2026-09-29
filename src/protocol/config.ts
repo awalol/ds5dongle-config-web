@@ -1,9 +1,10 @@
 export const CONFIG_BODY_VERSION = 5;
-export const CONFIG_BODY_SIZE = 19;
+export const CONFIG_BODY_SIZE = 22;
 export const FEATURE_REPORT_PAYLOAD_SIZE = 63;
 
-export type PollingRateMode = 0 | 1 | 2;
+export type PollingRateMode = 0 | 1 | 2 | 3;
 export type ControllerMode = 0 | 1 | 2;
+export type AudioSelectMode = 0 | 1 | 2 | 3;
 
 export interface ConfigBody {
   hapticsGain: number;
@@ -17,10 +18,13 @@ export interface ConfigBody {
   controllerMode: ControllerMode;
   enableUsbSn: boolean;
   psShortcutEnabled: boolean;
-  disableMic: boolean;
-  disableSpeaker: boolean;
+  micSelect: AudioSelectMode;
+  speakerSelect: AudioSelectMode;
   enableWake: boolean;
   triggerReduce: number;
+  lockVolume: boolean;
+  statusGpioPin: number;
+  statusGpioMode: number;
 }
 
 export interface ConfigValidationIssue {
@@ -39,10 +43,13 @@ export const DEFAULT_CONFIG: ConfigBody = {
   controllerMode: 2,
   enableUsbSn: false,
   psShortcutEnabled: false,
-  disableMic: false,
-  disableSpeaker: false,
+  micSelect: 0,
+  speakerSelect: 0,
   enableWake: false,
   triggerReduce: 0,
+  lockVolume: false,
+  statusGpioPin: 255,
+  statusGpioMode: 0,
 };
 
 export const POLLING_RATE_OPTIONS: Array<{
@@ -52,6 +59,7 @@ export const POLLING_RATE_OPTIONS: Array<{
   { value: 0, label: "250 Hz" },
   { value: 1, label: "500 Hz" },
   { value: 2, label: "Real-Time" },
+  { value: 3, label: "1000 Hz" },
 ];
 
 export const CONTROLLER_MODE_OPTIONS: Array<{
@@ -116,10 +124,13 @@ export function encodeConfigBody(config: ConfigBody): Uint8Array<ArrayBuffer> {
   view.setUint8(12, config.controllerMode);
   view.setUint8(13, config.enableUsbSn ? 1 : 0);
   view.setUint8(14, config.psShortcutEnabled ? 1 : 0);
-  view.setUint8(15, config.disableMic ? 1 : 0);
-  view.setUint8(16, config.disableSpeaker ? 1 : 0);
+  view.setUint8(15, config.micSelect);
+  view.setUint8(16, config.speakerSelect);
   view.setUint8(17, config.enableWake ? 1 : 0);
   view.setUint8(18, config.triggerReduce);
+  view.setUint8(19, config.lockVolume ? 1 : 0);
+  view.setUint8(20, config.statusGpioPin);
+  view.setUint8(21, config.statusGpioMode);
   return bytes;
 }
 
@@ -146,14 +157,14 @@ export function validateConfig(config: ConfigBody): ConfigValidationIssue[] {
     issues.push({ field: "inactiveTime" });
   }
 
-  if (!Number.isInteger(config.pollingRateMode) || config.pollingRateMode < 0 || config.pollingRateMode > 2) {
+  if (!Number.isInteger(config.pollingRateMode) || config.pollingRateMode < 0 || config.pollingRateMode > 3) {
     issues.push({ field: "pollingRateMode" });
   }
 
   if (
     !Number.isInteger(config.audioBufferLength) ||
     config.audioBufferLength < 16 ||
-    config.audioBufferLength > 127
+    config.audioBufferLength > 128
   ) {
     issues.push({ field: "audioBufferLength" });
   }
@@ -162,8 +173,28 @@ export function validateConfig(config: ConfigBody): ConfigValidationIssue[] {
     issues.push({ field: "controllerMode" });
   }
 
+  if (!Number.isInteger(config.micSelect) || config.micSelect < 0 || config.micSelect > 3) {
+    issues.push({ field: "micSelect" });
+  }
+
+  if (!Number.isInteger(config.speakerSelect) || config.speakerSelect < 0 || config.speakerSelect > 3) {
+    issues.push({ field: "speakerSelect" });
+  }
+
   if (!Number.isInteger(config.triggerReduce) || config.triggerReduce < 0 || config.triggerReduce > 10) {
     issues.push({ field: "triggerReduce" });
+  }
+
+  if (typeof config.lockVolume !== "boolean") {
+    issues.push({ field: "lockVolume" });
+  }
+
+  if (!Number.isInteger(config.statusGpioPin) || config.statusGpioPin < 0 || config.statusGpioPin > 255) {
+    issues.push({ field: "statusGpioPin" });
+  }
+
+  if (!Number.isInteger(config.statusGpioMode) || config.statusGpioMode < 0 || config.statusGpioMode > 1) {
+    issues.push({ field: "statusGpioMode" });
   }
 
   return issues;
@@ -177,15 +208,18 @@ export function normalizeConfig(config: ConfigBody): ConfigBody {
     speakerGain: clampInteger(config.speakerGain, 0, 7),
     inactiveTime: clampInteger(config.inactiveTime, 0, 60),
     disablePicoLed: Boolean(config.disablePicoLed),
-    pollingRateMode: clampInteger(config.pollingRateMode, 0, 2) as PollingRateMode,
-    audioBufferLength: clampInteger(config.audioBufferLength, 16, 127),
+    pollingRateMode: clampInteger(config.pollingRateMode, 0, 3) as PollingRateMode,
+    audioBufferLength: clampInteger(config.audioBufferLength, 16, 128),
     controllerMode: clampInteger(config.controllerMode, 0, 2) as ControllerMode,
     enableUsbSn: Boolean(config.enableUsbSn),
     psShortcutEnabled: Boolean(config.psShortcutEnabled),
-    disableMic: Boolean(config.disableMic),
-    disableSpeaker: Boolean(config.disableSpeaker),
+    micSelect: clampInteger(config.micSelect, 0, 3) as AudioSelectMode,
+    speakerSelect: clampInteger(config.speakerSelect, 0, 3) as AudioSelectMode,
     enableWake: Boolean(config.enableWake),
     triggerReduce: clampInteger(config.triggerReduce, 0, 10),
+    lockVolume: Boolean(config.lockVolume),
+    statusGpioPin: clampInteger(config.statusGpioPin, 0, 255),
+    statusGpioMode: clampInteger(config.statusGpioMode, 0, 1),
   };
 }
 
@@ -206,10 +240,13 @@ export function configsEqual(left: ConfigBody | null, right: ConfigBody | null):
     left.controllerMode === right.controllerMode &&
     left.enableUsbSn === right.enableUsbSn &&
     left.psShortcutEnabled === right.psShortcutEnabled &&
-    left.disableMic === right.disableMic &&
-    left.disableSpeaker === right.disableSpeaker &&
+    left.micSelect === right.micSelect &&
+    left.speakerSelect === right.speakerSelect &&
     left.enableWake === right.enableWake &&
-    left.triggerReduce === right.triggerReduce
+    left.triggerReduce === right.triggerReduce &&
+    left.lockVolume === right.lockVolume &&
+    left.statusGpioPin === right.statusGpioPin &&
+    left.statusGpioMode === right.statusGpioMode
   );
 }
 
@@ -255,10 +292,13 @@ function decodeAt(bytes: Uint8Array, offset: number): DecodedConfigCandidate | n
       controllerMode: view.getUint8(12) as ControllerMode,
       enableUsbSn: view.getUint8(13) === 1,
       psShortcutEnabled: view.getUint8(14) === 1,
-      disableMic: view.getUint8(15) === 1,
-      disableSpeaker: view.getUint8(16) === 1,
+      micSelect: view.getUint8(15) as AudioSelectMode,
+      speakerSelect: view.getUint8(16) as AudioSelectMode,
       enableWake: view.getUint8(17) === 1,
       triggerReduce: view.getUint8(18),
+      lockVolume: view.getUint8(19) === 1,
+      statusGpioPin: view.getUint8(20),
+      statusGpioMode: view.getUint8(21),
     },
   };
 }

@@ -103,6 +103,7 @@ export const en = {
     pollingRate: {
       hz250: "250 Hz",
       hz500: "500 Hz",
+      hz1000: "1000 Hz",
       realTime: "Real-time",
     },
     help: {
@@ -122,7 +123,8 @@ export const en = {
       disableMic: "Disable microphone.",
       disableSpeaker: "Disable speaker.",
       enableWake: "Enable USB wake.\nNote: after enabling, USB will stay continuously connected.",
-      pollingRateMode: "Real-time mode may cause gyro jitter. 500 Hz is recommended.",
+      pollingRateMode:
+        "250/500/1000 Hz send the latest complete controller state on a fixed USB schedule, repeating it when no new Bluetooth report arrives. 1000 Hz uses a 1 ms USB HID interval; it does not create 1000 new Bluetooth or gyro samples per second. Real-time sends only new reports. Gyro jitter improvement has not been measured.",
       controllerMode: "TODO: Fill in the controller mode description here.",
       enableUsbSn: "TODO: Fill in the USB serial number description here.",
       psShortcutEnabled: "TODO: Fill in the PS button shortcut description here.",
@@ -155,9 +157,14 @@ export const en = {
     speakerGain: "Speaker gain must be between 0 and 7",
     triggerReduce: "Trigger feedback reduction must be between 0 and 10",
     inactiveTime: "Inactive time must be between 0 and 60 minutes",
-    pollingRateMode: "Polling rate mode must be 0, 1, or 2",
-    audioBufferLength: "Audio buffer length must be between 16 and 127",
+    pollingRateMode: "Polling rate mode must be 0, 1, 2, or 3",
+    audioBufferLength: "Audio buffer length must be between 16 and 128",
     controllerMode: "Controller mode must be DS5, DSE, or Auto",
+    micSelect: "Microphone selection must be between 0 and 3",
+    speakerSelect: "Speaker selection must be between 0 and 3",
+    lockVolume: "Volume lock setting must be valid",
+    statusGpioPin: "Status GPIO pin must be between 0 and 255",
+    statusGpioMode: "Status GPIO mode must be 0 or 1",
   },
   errors: {
     invalidConfig: "Device returned invalid config: {{issues}}",
@@ -166,5 +173,6 @@ export const en = {
     noDeviceSelected: "No DS5 Bridge device was selected",
     unexpectedWebHid: "Unexpected WebHID error",
     disconnected: "Device disconnected",
+    mode3RequiresNewFirmware: "The device did not accept 1000 Hz mode. New firmware is required.",
   },
 } as const;

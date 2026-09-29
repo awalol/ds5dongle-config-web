@@ -226,6 +226,7 @@ export function useDs5Bridge(): UseDs5BridgeResult {
 
     applyingRef.current = true;
     setOperation("applying");
+    let mode3Rejected = false;
     try {
       while (true) {
         applyQueuedRef.current = false;
@@ -241,15 +242,45 @@ export function useDs5Bridge(): UseDs5BridgeResult {
         }
 
         await nextClient.applyConfig(nextDraft);
-        configRef.current = nextDraft;
-        setConfig(nextDraft);
-        setNeedsUsbReconnect(usbEffectiveConfigChanged(usbEffectiveConfigRef.current, nextDraft));
+        const appliedConfig = nextDraft.pollingRateMode === 3
+          ? normalizeConfig(await nextClient.readConfig())
+          : nextDraft;
+        configRef.current = appliedConfig;
+        setConfig(appliedConfig);
+        setNeedsUsbReconnect(usbEffectiveConfigChanged(usbEffectiveConfigRef.current, appliedConfig));
         setSaveState("applied");
-        setError(null);
+        if (nextDraft.pollingRateMode === 3) {
+          // Preserve fields edited while the HID write/read was in flight. The
+          // device's readback is authoritative for fields that were not edited.
+          const queuedDraft = draftRef.current;
+          const nextVisibleDraft = { ...appliedConfig };
+          for (const field of Object.keys(nextDraft) as (keyof ConfigBody)[]) {
+            if (queuedDraft[field] !== nextDraft[field]) {
+              Object.assign(nextVisibleDraft, { [field]: queuedDraft[field] });
+            }
+          }
 
-        if (configsEqual(draftRef.current, nextDraft)) {
-          draftRef.current = nextDraft;
-          setDraft(nextDraft);
+          if (appliedConfig.pollingRateMode !== 3) {
+            mode3Rejected = true;
+            // A queued unrelated edit must not send the rejected mode again.
+            if (nextVisibleDraft.pollingRateMode === 3) {
+              nextVisibleDraft.pollingRateMode = appliedConfig.pollingRateMode;
+            }
+            setError(t("errors.mode3RequiresNewFirmware"));
+          } else if (!mode3Rejected) {
+            setError(null);
+          }
+
+          draftRef.current = nextVisibleDraft;
+          setDraft(nextVisibleDraft);
+        } else {
+          if (!mode3Rejected) {
+            setError(null);
+          }
+          if (configsEqual(draftRef.current, nextDraft)) {
+            draftRef.current = nextDraft;
+            setDraft(nextDraft);
+          }
         }
 
         if (!applyQueuedRef.current && configsEqual(configRef.current, draftRef.current)) {

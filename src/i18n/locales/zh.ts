@@ -103,6 +103,7 @@ export const zh = {
     pollingRate: {
       hz250: "250 Hz",
       hz500: "500 Hz",
+      hz1000: "1000 Hz",
       realTime: "实时",
     },
     help: {
@@ -119,7 +120,8 @@ export const zh = {
       disableMic: "关闭麦克风",
       disableSpeaker: "关闭扬声器",
       enableWake: "开启 USB 唤醒。\n注意：开启后 USB 会一直保持常连状态",
-      pollingRateMode: "开启实时模式可能会有陀螺仪抽搐的问题。推荐 500Hz",
+      pollingRateMode:
+        "250/500/1000 Hz 按固定 USB 节拍发送最近一次完整的手柄状态；没有新蓝牙报告时会重复发送。1000 Hz 的 USB HID 间隔为 1 ms，不代表每秒有 1000 个新的蓝牙或陀螺仪样本。实时模式只发送新报告；陀螺仪抖动是否改善尚未实测。",
       controllerMode: "TODO: 在这里填写控制器模式说明。",
       enableUsbSn: "TODO: 在这里填写 USB 序列号说明。",
       psShortcutEnabled: "TODO: 在这里填写 PS 键快捷键说明。",
@@ -152,9 +154,14 @@ export const zh = {
     speakerGain: "扬声器增益必须在 0 到 7 之间",
     triggerReduce: "扳机反馈削减必须在 0 到 10 之间",
     inactiveTime: "闲置时间必须在 0 到 60 分钟之间",
-    pollingRateMode: "轮询率模式必须是 0、1 或 2",
-    audioBufferLength: "音频缓冲长度必须在 16 到 127 之间",
+    pollingRateMode: "轮询率模式必须是 0、1、2 或 3",
+    audioBufferLength: "音频缓冲长度必须在 16 到 128 之间",
     controllerMode: "控制器模式必须是 DS5、DSE 或自动",
+    micSelect: "麦克风选择值必须在 0 到 3 之间",
+    speakerSelect: "扬声器选择值必须在 0 到 3 之间",
+    lockVolume: "音量锁定设置无效",
+    statusGpioPin: "状态 GPIO 引脚必须在 0 到 255 之间",
+    statusGpioMode: "状态 GPIO 模式必须是 0 或 1",
   },
   errors: {
     invalidConfig: "设备返回了无效配置：{{issues}}",
@@ -163,5 +170,6 @@ export const zh = {
     noDeviceSelected: "未选择 DS5 Bridge 设备",
     unexpectedWebHid: "未知 WebHID 错误",
     disconnected: "设备已断开连接",
+    mode3RequiresNewFirmware: "设备未接受 1000 Hz 档位，需要更新固件。",
   },
 } as const;
