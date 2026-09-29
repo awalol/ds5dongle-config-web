@@ -1,0 +1,3 @@
+allowBuilds:
+  msw: false
+  sharp: false

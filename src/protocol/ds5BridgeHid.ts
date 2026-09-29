@@ -1,9 +1,9 @@
 import {
   ConfigBody,
   FEATURE_REPORT_PAYLOAD_SIZE,
-  decodeConfigBody,
   encodeConfigBody,
 } from "./config";
+import { ConfigSnapshot, decodeConfigSnapshot, encodeBatteryFeedbackCommand } from "./batteryExtension";
 
 export const SONY_VENDOR_ID = 0x054c;
 export const SUPPORTED_PRODUCT_IDS = [0x0ce6, 0x0df2] as const;
@@ -78,9 +78,13 @@ export class Ds5BridgeHidClient {
   }
 
   async readConfig(): Promise<ConfigBody> {
+    return (await this.readConfigSnapshot()).config;
+  }
+
+  async readConfigSnapshot(): Promise<ConfigSnapshot> {
     await this.open();
     const report = await this.device.receiveFeatureReport(REPORT_GET_CONFIG);
-    return decodeConfigBody(report);
+    return decodeConfigSnapshot(report);
   }
 
   async readFirmwareVersion(): Promise<string> {
@@ -101,6 +105,11 @@ export class Ds5BridgeHidClient {
     const report = commandReport(CMD_UPDATE_CONFIG);
     report.set(body, 1);
     await this.device.sendFeatureReport(REPORT_SET_CONFIG, report);
+  }
+
+  async applyBatteryFeedback(enabled: boolean): Promise<void> {
+    await this.open();
+    await this.device.sendFeatureReport(REPORT_SET_CONFIG, encodeBatteryFeedbackCommand(enabled));
   }
 
   async saveToFlash(): Promise<void> {

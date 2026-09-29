@@ -37,7 +37,7 @@ export function ActionsPanel({ bridge, isBusy }: ActionsPanelProps) {
           type="button"
           className="w-full bg-blue-600 text-white hover:bg-blue-700"
           onClick={bridge.saveToFlash}
-          disabled={!bridge.client || isBusy || bridge.isDirty}
+          disabled={!bridge.client || !bridge.hasValidSnapshot || isBusy || bridge.isDirty}
           title={bridge.isDirty ? t("actions.saveDirtyTitle") : t("actions.saveTitle")}
         >
           <Save size={17} />
@@ -48,7 +48,7 @@ export function ActionsPanel({ bridge, isBusy }: ActionsPanelProps) {
           variant="outline"
           className="w-full"
           onClick={bridge.reconnectUsb}
-          disabled={!bridge.client || isBusy}
+          disabled={!bridge.client || !bridge.hasValidSnapshot || isBusy}
           title={t("actions.reconnectTitle")}
         >
           <Power size={17} />
@@ -59,7 +59,7 @@ export function ActionsPanel({ bridge, isBusy }: ActionsPanelProps) {
           variant="ghost"
           className="w-full"
           onClick={bridge.resetToDefaults}
-          disabled={!bridge.client || isBusy || bridge.isDefaultConfig}
+          disabled={!bridge.client || !bridge.hasValidSnapshot || isBusy || bridge.isDefaultConfig}
           title={t("actions.resetTitle")}
         >
           <RotateCcw size={17} />

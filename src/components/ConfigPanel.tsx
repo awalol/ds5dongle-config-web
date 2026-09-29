@@ -15,7 +15,7 @@ interface ConfigPanelProps {
 
 export function ConfigPanel({ bridge }: ConfigPanelProps) {
   const { t } = useTranslation();
-  const controlsDisabled = !bridge.isConnected;
+  const controlsDisabled = !bridge.isConnected || !bridge.hasValidSnapshot;
 
   return (
     <Card className="panel config-panel">
@@ -96,7 +96,7 @@ export function ConfigPanel({ bridge }: ConfigPanelProps) {
                 label={t("config.audioBufferLength")}
                 value={bridge.draft.audioBufferLength}
                 min={16}
-                max={127}
+                max={128}
                 helpContent={t("config.help.audioBufferLength")}
                 issue={fieldIssue(bridge.issues, "audioBufferLength")}
                 disabled={controlsDisabled}
@@ -156,18 +156,27 @@ export function ConfigPanel({ bridge }: ConfigPanelProps) {
                 onChange={(value) => bridge.setDraftField("disablePicoLed", value)}
               />
               <ToggleControl
+                label={t("config.batteryFeedback")}
+                value={bridge.batteryFeedbackDraft}
+                helpContent={t("config.help.batteryFeedback")}
+                disabled={controlsDisabled || !bridge.batteryFeedbackSupported}
+                disabledReason={!bridge.batteryFeedbackSupported && bridge.hasValidSnapshot
+                  ? t("config.batteryFeedbackUnavailable") : undefined}
+                onChange={bridge.setBatteryFeedbackDraft}
+              />
+              <ToggleControl
                 label={t("config.disableMic")}
-                value={bridge.draft.disableMic}
+                value={bridge.draft.micSelect === 3}
                 helpContent={t("config.help.disableMic")}
                 disabled={controlsDisabled}
-                onChange={(value) => bridge.setDraftField("disableMic", value)}
+                onChange={(value) => bridge.setDraftField("micSelect", value ? 3 : 0)}
               />
               <ToggleControl
                 label={t("config.disableSpeaker")}
-                value={bridge.draft.disableSpeaker}
+                value={bridge.draft.speakerSelect === 3}
                 helpContent={t("config.help.disableSpeaker")}
                 disabled={controlsDisabled}
-                onChange={(value) => bridge.setDraftField("disableSpeaker", value)}
+                onChange={(value) => bridge.setDraftField("speakerSelect", value ? 3 : 0)}
               />
               <ToggleControl
                 label={t("config.enableWake")}

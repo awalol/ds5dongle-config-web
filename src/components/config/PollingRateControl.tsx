@@ -17,6 +17,7 @@ export function PollingRateControl({ value, helpContent, disabled = false, onCha
     0: t("config.pollingRate.hz250"),
     1: t("config.pollingRate.hz500"),
     2: t("config.pollingRate.realTime"),
+    3: t("config.pollingRate.hz1000"),
   };
 
   return (
@@ -34,7 +35,7 @@ export function PollingRateControl({ value, helpContent, disabled = false, onCha
         }}
         className="w-full"
       >
-        <TabsList className="grid h-10 w-full grid-cols-3">
+        <TabsList className="grid h-auto w-full grid-cols-2 gap-1">
           {POLLING_RATE_OPTIONS.map((option) => (
             <TabsTrigger
               key={option.value}
