@@ -122,7 +122,7 @@ export const zh = {
       audioBufferLength: "越小延迟越低，但是可能会导致声音偶尔卡顿。越大越稳定。用于：HD 震动、扬声器、耳机孔",
       inactiveTime: "静默自动断开\n0 为关闭",
       disablePicoLed: "关闭常亮的 PICO LED 灯。但是手柄低电量时仍会闪烁",
-      batteryFeedback: "一个开关同时控制白色 Player LEDs 电量显示和红色灯条低电提醒，默认关闭。Pico LED 独立工作。无需重连 USB。",
+      batteryFeedback: "一个开关同时控制四个外侧白色 Player LED 的电量显示（中间灯保持熄灭），以及电量降入更低档位时灯条的蓝色／黄色／红色提示。默认关闭。Pico LED 独立工作。无需重连 USB。",
       disableMic: "关闭麦克风",
       disableSpeaker: "关闭扬声器",
       enableWake: "开启 USB 唤醒。\n注意：开启后 USB 会一直保持常连状态",

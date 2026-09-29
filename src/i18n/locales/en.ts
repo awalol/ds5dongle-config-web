@@ -125,7 +125,7 @@ export const en = {
         "Lower values reduce latency, but may cause occasional audio stutters. Higher values are more stable. Used for: HD rumble, speaker, and headphone jack.",
       inactiveTime: "Idle auto-disconnect\n0 disables it.",
       disablePicoLed: "Turns off the always-on PICO LED. It will still blink when the controller battery is low.",
-      batteryFeedback: "One switch controls the white Player LED battery level and red lightbar low-battery alert. Default off. The Pico LED works independently. No USB reconnect is needed.",
+      batteryFeedback: "One switch controls the four outer white Player LEDs as a battery-level display (center LED stays off) and blue/yellow/red lightbar notifications when the battery drops into a lower tier. Default off. The Pico LED works independently. No USB reconnect is needed.",
       disableMic: "Disable microphone.",
       disableSpeaker: "Disable speaker.",
       enableWake: "Enable USB wake.\nNote: after enabling, USB will stay continuously connected.",
