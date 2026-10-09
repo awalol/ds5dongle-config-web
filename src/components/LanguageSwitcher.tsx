@@ -1,13 +1,14 @@
 import { ChevronDown, Languages } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-type SupportedLanguage = "en" | "zh" | "fr";
+type SupportedLanguage = "en" | "ru" | "zh" | "fr";
 
 const languageOptions: Array<{
   value: SupportedLanguage;
-  labelKey: "language.english" | "language.chinese" | "language.french";
+  labelKey: "language.english" | "language.russian" | "language.chinese" | "language.french";
 }> = [
   { value: "en", labelKey: "language.english" },
+  { value: "ru", labelKey: "language.russian" },
   { value: "zh", labelKey: "language.chinese" },
   { value: "fr", labelKey: "language.french" },
 ];
@@ -39,6 +40,10 @@ export function LanguageSwitcher() {
 }
 
 function getSupportedLanguage(language: string | undefined): SupportedLanguage {
+  if (language?.startsWith("ru")) {
+    return "ru";
+  }
+
   if (language?.startsWith("zh")) {
     return "zh";
   }

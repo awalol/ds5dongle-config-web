@@ -9,7 +9,7 @@ void i18n
   .init({
     resources,
     fallbackLng: "en",
-    supportedLngs: ["en", "zh", "fr"],
+    supportedLngs: ["en", "ru", "zh", "fr"],
     load: "languageOnly",
     detection: {
       order: ["localStorage", "navigator", "htmlTag"],
@@ -39,7 +39,11 @@ void i18n.loadNamespaces([]).then(() => {
 
 export default i18n;
 
-function normalizeHtmlLanguage(language: string | undefined): "en" | "zh-CN" | "fr" {
+function normalizeHtmlLanguage(language: string | undefined): "en" | "ru" | "zh-CN" | "fr" {
+  if (language?.startsWith("ru")) {
+    return "ru";
+  }
+
   if (language?.startsWith("zh")) {
     return "zh-CN";
   }

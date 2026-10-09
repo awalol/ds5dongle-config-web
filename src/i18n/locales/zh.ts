@@ -45,6 +45,7 @@ export const zh = {
   language: {
     label: "语言",
     english: "English",
+    russian: "Русский",
     chinese: "中文",
     french: "Français",
   },

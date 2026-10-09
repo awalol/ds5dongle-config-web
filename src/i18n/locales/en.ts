@@ -45,6 +45,7 @@ export const en = {
   language: {
     label: "Language",
     english: "English",
+    russian: "Русский",
     chinese: "中文",
     french: "Français",
   },
