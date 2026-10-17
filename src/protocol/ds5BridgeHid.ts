@@ -35,6 +35,7 @@ const REPORT_GET_SIGNAL_STRENGTH = 0xf9;
 const CMD_UPDATE_CONFIG = 0x01;
 const CMD_SAVE_TO_FLASH = 0x02;
 const CMD_RECONNECT_USB = 0x03;
+const CMD_SHORTCUT_LEARNING = 0x05;
 const HID_SET_REPORT_DELAY_MS = 50;
 
 export interface AudioActivityState {
@@ -174,6 +175,19 @@ export class Ds5BridgeHidClient {
     await this.open();
     await this.device.sendFeatureReport(REPORT_SET_CONFIG, commandReport(CMD_RECONNECT_USB));
   }
+
+  /**
+   * Tells the firmware that the UI is capturing a controller trigger, so it
+   * pauses shortcut output and the captured press does not fire its own action.
+   * The firmware window is fixed at five seconds and cannot be cancelled.
+   */
+  async startShortcutLearning(): Promise<void> {
+    await this.open();
+    await this.device.sendFeatureReport(
+      REPORT_SET_CONFIG,
+      commandReport(CMD_SHORTCUT_LEARNING, 0x01),
+    );
+  }
 }
 
 export function webHidAvailable(): boolean {
@@ -209,9 +223,10 @@ function isGamepadCollection(collection: HIDCollectionInfo): boolean {
   return collection.usagePage === GENERIC_DESKTOP_USAGE_PAGE && collection.usage === GAMEPAD_USAGE;
 }
 
-function commandReport(command: number): Uint8Array<ArrayBuffer> {
+function commandReport(command: number, payload = 0x00): Uint8Array<ArrayBuffer> {
   const report = new Uint8Array(new ArrayBuffer(FEATURE_REPORT_PAYLOAD_SIZE));
   report[0] = command;
+  report[1] = payload;
   return report;
 }
 

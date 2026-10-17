@@ -87,6 +87,7 @@ export interface UseDs5BridgeResult {
   resetButtonRemap: () => void;
   saveButtonRemap: () => Promise<void>;
   subscribeControllerButtons: (listener: ControllerButtonListener) => () => void;
+  startShortcutLearning: () => Promise<void>;
   setShortcut: (slot: number, shortcut: ShortcutSlot) => void;
   clearShortcut: (slot: number) => void;
   resetShortcuts: () => void;
@@ -455,6 +456,20 @@ export function useDs5Bridge(): UseDs5BridgeResult {
     return () => setButtonListeners((current) => current.filter((entry) => entry !== listener));
   }, []);
 
+  // Starts the firmware's capture window. Listeners suppress the resulting
+  // button press themselves; the window covers the shortcut state machine.
+  const startShortcutLearning = useCallback(async () => {
+    const nextClient = clientRef.current;
+    if (!nextClient) {
+      return;
+    }
+    try {
+      await nextClient.startShortcutLearning();
+    } catch (cause) {
+      setError(errorMessage(cause, t));
+    }
+  }, [t]);
+
   // Input reports arrive at the controller's polling rate, so the listener is
   // only attached while something is actually watching for button presses.
   useEffect(() => {
@@ -639,6 +654,7 @@ export function useDs5Bridge(): UseDs5BridgeResult {
     resetButtonRemap,
     saveButtonRemap,
     subscribeControllerButtons,
+    startShortcutLearning,
     setShortcut,
     clearShortcut,
     resetShortcuts,

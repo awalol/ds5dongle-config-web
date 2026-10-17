@@ -52,16 +52,19 @@ interface ShortcutsPageProps {
 
 /** A trigger is one button, or a chord of two. */
 const MAX_TRIGGER_BUTTONS = 2;
+/** Must match the firmware's SHORTCUT_LEARNING_WINDOW_MS. */
+const LEARNING_WINDOW_MS = 5_000;
 
 export function ShortcutsPage({ bridge }: ShortcutsPageProps) {
   const { t } = useTranslation();
   const gestureHintId = useId();
-  const { setShortcut, subscribeControllerButtons } = bridge;
+  const { setShortcut, startShortcutLearning, subscribeControllerButtons } = bridge;
   const [selectedSlotIndex, setSelectedSlotIndex] = useState(0);
   const [isListening, setIsListening] = useState(false);
   const [capturedButtons, setCapturedButtons] = useState<number[]>([]);
   const captureRef = useRef<number[]>([]);
   const commitCaptureRef = useRef<(buttons: readonly number[]) => void>(() => {});
+  const learningTimerRef = useRef<number | undefined>(undefined);
   const selectedSlot = bridge.shortcuts[selectedSlotIndex] ?? createDisabledShortcut();
   const isBusy = bridge.operation !== null;
   const allDisabled = bridge.shortcuts.every(isShortcutDisabled);
@@ -182,6 +185,21 @@ export function ShortcutsPage({ bridge }: ShortcutsPageProps) {
       setIsListening(false);
     }
   }, [bridge.isConnected, isBusy]);
+
+  // The firmware pauses shortcut output for a fixed five-second window, so a
+  // capture that outlives it would let the next press fire its own action.
+  // The UI stops listening on the same schedule.
+  useEffect(() => {
+    if (!isListening) {
+      return;
+    }
+
+    learningTimerRef.current = window.setTimeout(() => setIsListening(false), LEARNING_WINDOW_MS);
+    return () => {
+      window.clearTimeout(learningTimerRef.current);
+      learningTimerRef.current = undefined;
+    };
+  }, [isListening]);
 
   useEffect(() => {
     if (!isListening) {
@@ -386,7 +404,15 @@ export function ShortcutsPage({ bridge }: ShortcutsPageProps) {
                       variant={isListening ? "default" : "outline"}
                       size="sm"
                       aria-pressed={isListening}
-                      onClick={() => setIsListening((current) => !current)}
+                      onClick={() => {
+                        if (isListening) {
+                          setIsListening(false);
+                          return;
+                        }
+                        setIsListening(true);
+                        // Each capture pass opens a fresh firmware window.
+                        void startShortcutLearning();
+                      }}
                     >
                       <Gamepad2 size={15} />
                       {t(isListening ? "shortcuts.listenCancel" : "shortcuts.listen")}
