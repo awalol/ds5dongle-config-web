@@ -570,6 +570,48 @@ h2 {
   line-height: 1.25;
 }
 
+.config-inline-hint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 8px 10px;
+  color: var(--app-warning);
+  background: var(--app-warning-bg);
+  border: 1px solid var(--app-warning-border);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.config-inline-hint svg {
+  flex: 0 0 auto;
+}
+
+.config-inline-hint button {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding: 3px 8px;
+  color: inherit;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.config-inline-hint button:hover:not(:disabled) {
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.config-inline-hint button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
 .control-row {
   display: grid;
   grid-template-columns: minmax(130px, 0.68fr) minmax(200px, 1fr);

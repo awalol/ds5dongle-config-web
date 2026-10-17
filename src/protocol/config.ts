@@ -1,13 +1,19 @@
 export const CONFIG_BODY_VERSION = 5;
-export const CONFIG_BODY_SIZE = 22;
+export const CONFIG_BODY_SIZE = 24;
 export const FEATURE_REPORT_PAYLOAD_SIZE = 63;
 
-export type PollingRateMode = 0 | 1 | 2;
+export type PollingRateMode = 0 | 1 | 2 | 3;
 export type ControllerMode = 0 | 1 | 2;
 export type AudioDeviceSelect = 0 | 1 | 2 | 3;
 export type StatusGpioMode = 0 | 1;
+export type PacketMode = 0 | 1;
 
 export const STATUS_GPIO_DISABLED = 0xff;
+
+// Single-packet mode sends one audio frame per Bluetooth packet, which keeps
+// small buffers stable. Below this length the double-packet default tends to
+// stutter, so the UI suggests switching.
+export const SINGLE_PACKET_BUFFER_THRESHOLD = 32;
 
 // Pico 2 W exposes GPIO 0-22 and 26-28. The Pico SDK board definition reserves
 // 23/24/25/29 for CYW43 and VSYS, while the firmware also reserves UART GPIO 0/1.
@@ -36,6 +42,8 @@ export interface ConfigBody {
   lockVolume: boolean;
   statusGpioPin: number;
   statusGpioMode: StatusGpioMode;
+  packetMode: PacketMode;
+  disconnectOnDock: boolean;
 }
 
 export interface ConfigValidationIssue {
@@ -61,6 +69,8 @@ export const DEFAULT_CONFIG: ConfigBody = {
   lockVolume: false,
   statusGpioPin: STATUS_GPIO_DISABLED,
   statusGpioMode: 0,
+  packetMode: 0,
+  disconnectOnDock: false,
 };
 
 export const POLLING_RATE_OPTIONS: Array<{
@@ -69,7 +79,8 @@ export const POLLING_RATE_OPTIONS: Array<{
 }> = [
   { value: 0, label: "250 Hz" },
   { value: 1, label: "500 Hz" },
-  { value: 2, label: "Real-Time" },
+  { value: 2, label: "1000 Hz" },
+  { value: 3, label: "Real-Time" },
 ];
 
 export const CONTROLLER_MODE_OPTIONS: Array<{
@@ -150,6 +161,8 @@ export function encodeConfigBody(config: ConfigBody): Uint8Array<ArrayBuffer> {
   view.setUint8(19, config.lockVolume ? 1 : 0);
   view.setUint8(20, config.statusGpioPin);
   view.setUint8(21, config.statusGpioMode);
+  view.setUint8(22, config.packetMode);
+  view.setUint8(23, config.disconnectOnDock ? 1 : 0);
   return bytes;
 }
 
@@ -176,7 +189,7 @@ export function validateConfig(config: ConfigBody): ConfigValidationIssue[] {
     issues.push({ field: "inactiveTime" });
   }
 
-  if (!Number.isInteger(config.pollingRateMode) || config.pollingRateMode < 0 || config.pollingRateMode > 2) {
+  if (!Number.isInteger(config.pollingRateMode) || config.pollingRateMode < 0 || config.pollingRateMode > 3) {
     issues.push({ field: "pollingRateMode" });
   }
 
@@ -212,6 +225,10 @@ export function validateConfig(config: ConfigBody): ConfigValidationIssue[] {
     issues.push({ field: "statusGpioMode" });
   }
 
+  if (!Number.isInteger(config.packetMode) || config.packetMode < 0 || config.packetMode > 1) {
+    issues.push({ field: "packetMode" });
+  }
+
   return issues;
 }
 
@@ -223,7 +240,7 @@ export function normalizeConfig(config: ConfigBody): ConfigBody {
     speakerGain: clampInteger(config.speakerGain, 0, 7),
     inactiveTime: clampInteger(config.inactiveTime, 0, 60),
     disablePicoLed: Boolean(config.disablePicoLed),
-    pollingRateMode: clampInteger(config.pollingRateMode, 0, 2) as PollingRateMode,
+    pollingRateMode: clampInteger(config.pollingRateMode, 0, 3) as PollingRateMode,
     audioBufferLength: clampInteger(config.audioBufferLength, 16, 128),
     controllerMode: clampInteger(config.controllerMode, 0, 2) as ControllerMode,
     enableUsbSn: Boolean(config.enableUsbSn),
@@ -237,7 +254,15 @@ export function normalizeConfig(config: ConfigBody): ConfigBody {
       ? config.statusGpioPin
       : STATUS_GPIO_DISABLED,
     statusGpioMode: clampInteger(config.statusGpioMode, 0, 1) as StatusGpioMode,
+    packetMode: clampInteger(config.packetMode, 0, 1) as PacketMode,
+    disconnectOnDock: Boolean(config.disconnectOnDock),
   };
+}
+
+export function shouldSuggestSinglePacket(
+  config: Pick<ConfigBody, "audioBufferLength" | "packetMode">,
+): boolean {
+  return config.packetMode === 0 && config.audioBufferLength < SINGLE_PACKET_BUFFER_THRESHOLD;
 }
 
 export function isStatusGpioPinAvailable(value: number): boolean {
@@ -267,7 +292,9 @@ export function configsEqual(left: ConfigBody | null, right: ConfigBody | null):
     left.triggerReduce === right.triggerReduce &&
     left.lockVolume === right.lockVolume &&
     left.statusGpioPin === right.statusGpioPin &&
-    left.statusGpioMode === right.statusGpioMode
+    left.statusGpioMode === right.statusGpioMode &&
+    left.packetMode === right.packetMode &&
+    left.disconnectOnDock === right.disconnectOnDock
   );
 }
 
@@ -320,6 +347,8 @@ function decodeAt(bytes: Uint8Array, offset: number): DecodedConfigCandidate | n
       lockVolume: view.getUint8(19) === 1,
       statusGpioPin: view.getUint8(20),
       statusGpioMode: view.getUint8(21) as StatusGpioMode,
+      packetMode: view.getUint8(22) as PacketMode,
+      disconnectOnDock: view.getUint8(23) === 1,
     },
   };
 }

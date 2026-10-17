@@ -118,9 +118,10 @@ export const en = {
       feedbackDescription:
         "Tune controller haptics, speaker level, headset level, speaker gain, trigger feedback, buffer size, and volume lock.",
       power: "Power & indicators",
-      powerDescription: "Control inactive disconnect, the Pico LED, the controller microphone and speaker, and USB wake.",
+      powerDescription:
+        "Control inactive disconnect, dock disconnect, the Pico LED, the controller microphone and speaker, and USB wake.",
       performance: "Performance",
-      performanceDescription: "Choose the HID report polling cadence.",
+      performanceDescription: "Choose the HID report polling cadence and the audio packet mode.",
       compatibility: "Compatibility",
       compatibilityDescription: "Switch the controller identification mode.",
       integration: "GPIO integration",
@@ -133,12 +134,17 @@ export const en = {
     triggerReduce: "Trigger feedback reduction",
     inactiveTime: "Inactive time",
     inactiveTimeUnit: "Unit: minutes",
+    disconnectOnDock: "Disconnect on dock",
     disablePicoLed: "Disable Pico LED",
     micSelect: "Microphone",
     speakerSelect: "Speaker / headset",
     enableWake: "Wake host on PS press",
     pollingRateMode: "Polling rate mode",
+    packetMode: "Single packet mode",
     audioBufferLength: "Audio buffer length",
+    singlePacketHint:
+      "Audio buffer length is below 32. Double packet mode may cause audio stutters — switch to single packet mode.",
+    enableSinglePacket: "Enable single packet mode",
     lockVolume: "Lock volume",
     controllerMode: "Controller mode",
     enableUsbSn: "Enable USB serial number",
@@ -156,6 +162,7 @@ export const en = {
     pollingRate: {
       hz250: "250 Hz",
       hz500: "500 Hz",
+      hz1000: "1000 Hz",
       realTime: "Real-time",
     },
     audioDeviceSelectOptions: {
@@ -182,11 +189,16 @@ export const en = {
         "Lower values reduce latency, but may cause occasional audio stutters. Higher values are more stable. Used for: HD rumble, speaker, and headphone jack.",
       lockVolume: "Ignore volume settings from games or software.",
       inactiveTime: "Idle auto-disconnect\n0 disables it.",
+      disconnectOnDock:
+        "Drop the Bluetooth link when the controller is placed on a charger or dock. Pick it up to reconnect.",
       disablePicoLed: "Turns off the always-on PICO LED. It will still blink when the controller battery is low.",
       micSelect: "0: Auto\n1: Built-in\n2: Headphone\n3: Disabled",
       speakerSelect: "0: Auto\n1: Built-in\n2: Headphone\n3: Disabled",
       enableWake: "Enable USB wake.\nNote: after enabling, USB will stay continuously connected.",
-      pollingRateMode: "Real-time mode may cause gyro jitter. 500 Hz is recommended.",
+      pollingRateMode:
+        "1000 Hz keeps a 1 ms USB report interval. Real-time forwards each controller report as soon as it arrives and may cause gyro jitter. 500 Hz is recommended.",
+      packetMode:
+        "Send one audio frame per Bluetooth packet instead of two. Recommended when the audio buffer length is below 32.",
       controllerMode: "TODO: Fill in the controller mode description here.",
       enableUsbSn: "TODO: Fill in the USB serial number description here.",
       enableKeyboard:
@@ -304,7 +316,8 @@ export const en = {
     speakerGain: "Speaker gain must be between 0 and 7",
     triggerReduce: "Trigger feedback reduction must be between 0 and 10",
     inactiveTime: "Inactive time must be between 0 and 60 minutes",
-    pollingRateMode: "Polling rate mode must be 0, 1, or 2",
+    pollingRateMode: "Polling rate mode must be 0, 1, 2, or 3",
+    packetMode: "Packet mode must be double or single",
     audioBufferLength: "Audio buffer length must be between 16 and 128",
     controllerMode: "Controller mode must be DS5, DSE, or Auto",
     micSelect: "Microphone must be Auto, Built-in, Headphone, or Disabled",

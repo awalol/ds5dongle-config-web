@@ -1,8 +1,8 @@
-import { Cable, Gauge, Gamepad2, SlidersHorizontal, Volume2, Zap } from "lucide-react";
+import { AlertTriangle, Cable, Gauge, Gamepad2, SlidersHorizontal, Volume2, Zap } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UseDs5BridgeResult } from "../hooks/useDs5Bridge";
-import { fieldIssue, STATUS_GPIO_DISABLED } from "../protocol/config";
+import { fieldIssue, shouldSuggestSinglePacket, STATUS_GPIO_DISABLED } from "../protocol/config";
 import { AudioDeviceSelectControl } from "./config/AudioDeviceSelectControl";
 import { ControllerModeControl } from "./config/ControllerModeControl";
 import { FloatControl } from "./config/FloatControl";
@@ -105,6 +105,19 @@ export function ConfigPanel({ bridge }: ConfigPanelProps) {
                 disabled={controlsDisabled}
                 onChange={(value) => bridge.setDraftField("audioBufferLength", value)}
               />
+              {shouldSuggestSinglePacket(bridge.draft) && (
+                <div className="config-inline-hint" role="status">
+                  <AlertTriangle size={16} aria-hidden="true" />
+                  <span>{t("config.singlePacketHint")}</span>
+                  <button
+                    type="button"
+                    disabled={controlsDisabled}
+                    onClick={() => bridge.setDraftField("packetMode", 1)}
+                  >
+                    {t("config.enableSinglePacket")}
+                  </button>
+                </div>
+              )}
               <ToggleControl
                 label={t("config.lockVolume")}
                 value={bridge.draft.lockVolume}
@@ -131,6 +144,13 @@ export function ConfigPanel({ bridge }: ConfigPanelProps) {
                 helpContent={t("config.help.pollingRateMode")}
                 disabled={controlsDisabled}
                 onChange={(value) => bridge.setDraftField("pollingRateMode", value)}
+              />
+              <ToggleControl
+                label={t("config.packetMode")}
+                value={bridge.draft.packetMode === 1}
+                helpContent={t("config.help.packetMode")}
+                disabled={controlsDisabled}
+                onChange={(value) => bridge.setDraftField("packetMode", value ? 1 : 0)}
               />
             </div>
           </section>
@@ -186,6 +206,13 @@ export function ConfigPanel({ bridge }: ConfigPanelProps) {
                 issue={fieldIssue(bridge.issues, "inactiveTime")}
                 disabled={controlsDisabled}
                 onChange={(value) => bridge.setDraftField("inactiveTime", value)}
+              />
+              <ToggleControl
+                label={t("config.disconnectOnDock")}
+                value={bridge.draft.disconnectOnDock}
+                helpContent={t("config.help.disconnectOnDock")}
+                disabled={controlsDisabled}
+                onChange={(value) => bridge.setDraftField("disconnectOnDock", value)}
               />
               <ToggleControl
                 label={t("config.disablePicoLed")}

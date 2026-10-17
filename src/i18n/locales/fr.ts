@@ -120,9 +120,9 @@ export const fr = {
         "Ajuster les vibrations, le niveau du haut-parleur, le niveau du casque, le gain du haut-parleur, les gâchettes, le tampon audio et le verrouillage du volume.",
       power: "Alimentation et voyants",
       powerDescription:
-        "Contrôler la déconnexion après inactivité, la LED Pico, le micro et le haut-parleur de la manette, ainsi que le réveil USB.",
+        "Contrôler la déconnexion après inactivité, la déconnexion sur dock, la LED Pico, le micro et le haut-parleur de la manette, ainsi que le réveil USB.",
       performance: "Performances",
-      performanceDescription: "Choisir la cadence d'envoi des rapports HID.",
+      performanceDescription: "Choisir la cadence d'envoi des rapports HID et le mode de paquet audio.",
       compatibility: "Compatibilité",
       compatibilityDescription: "Changer le mode d'identification de la manette.",
       integration: "Intégration GPIO",
@@ -135,12 +135,17 @@ export const fr = {
     triggerReduce: "Réduction du retour des gâchettes",
     inactiveTime: "Temps d'inactivité",
     inactiveTimeUnit: "Unité : minutes",
+    disconnectOnDock: "Déconnexion sur dock",
     disablePicoLed: "Désactiver la LED Pico",
     micSelect: "Microphone",
     speakerSelect: "Haut-parleur / casque",
     enableWake: "Réveiller l'hôte avec PS",
     pollingRateMode: "Mode de taux d'interrogation",
+    packetMode: "Mode paquet unique",
     audioBufferLength: "Longueur du tampon audio",
+    singlePacketHint:
+      "La longueur du tampon audio est inférieure à 32. Le mode double paquet peut provoquer des coupures audio — activez le mode paquet unique.",
+    enableSinglePacket: "Activer le mode paquet unique",
     lockVolume: "Verrouiller le volume",
     controllerMode: "Mode de manette",
     enableUsbSn: "Activer le numéro de série USB",
@@ -158,6 +163,7 @@ export const fr = {
     pollingRate: {
       hz250: "250 Hz",
       hz500: "500 Hz",
+      hz1000: "1000 Hz",
       realTime: "Temps réel",
     },
     audioDeviceSelectOptions: {
@@ -185,11 +191,16 @@ export const fr = {
         "Les valeurs plus basses réduisent la latence, mais peuvent provoquer des coupures audio occasionnelles. Les valeurs plus hautes sont plus stables. Utilisé pour : vibration HD, haut-parleur et prise casque.",
       lockVolume: "Ignorer les réglages de volume provenant des jeux ou des logiciels.",
       inactiveTime: "Déconnexion automatique après inactivité\n0 la désactive.",
+      disconnectOnDock:
+        "Coupe la liaison Bluetooth lorsque la manette est posée sur un chargeur ou un dock. Reprenez-la pour vous reconnecter.",
       disablePicoLed: "Éteint la LED PICO toujours allumée. Elle clignotera toujours quand la batterie de la manette est faible.",
       micSelect: "0 : Auto\n1 : Intégré\n2 : Casque\n3 : Désactivé",
       speakerSelect: "0 : Auto\n1 : Intégré\n2 : Casque\n3 : Désactivé",
       enableWake: "Activer le réveil USB.\nRemarque : après activation, l'USB restera connecté en continu.",
-      pollingRateMode: "Le mode temps réel peut provoquer des saccades du gyroscope. 500 Hz est recommandé.",
+      pollingRateMode:
+        "1000 Hz fixe un intervalle USB de 1 ms. Le mode temps réel transmet chaque rapport dès sa réception et peut provoquer des saccades du gyroscope. 500 Hz est recommandé.",
+      packetMode:
+        "Envoie une seule trame audio par paquet Bluetooth au lieu de deux. Recommandé lorsque la longueur du tampon audio est inférieure à 32.",
       controllerMode: "TODO : ajouter ici la description du mode de manette.",
       enableUsbSn: "TODO : ajouter ici la description du numéro de série USB.",
       enableKeyboard:
@@ -308,7 +319,8 @@ export const fr = {
     speakerGain: "Le gain du haut-parleur doit être compris entre 0 et 7",
     triggerReduce: "La réduction du retour des gâchettes doit être comprise entre 0 et 10",
     inactiveTime: "Le temps d'inactivité doit être compris entre 0 et 60 minutes",
-    pollingRateMode: "Le mode de taux d'interrogation doit être 0, 1 ou 2",
+    pollingRateMode: "Le mode de taux d'interrogation doit être 0, 1, 2 ou 3",
+    packetMode: "Le mode de paquet doit être double ou unique",
     audioBufferLength: "La longueur du tampon audio doit être comprise entre 16 et 128",
     controllerMode: "Le mode de manette doit être DS5, DSE ou Auto",
     micSelect: "Le microphone doit être Auto, Intégré, Casque ou Désactivé",
