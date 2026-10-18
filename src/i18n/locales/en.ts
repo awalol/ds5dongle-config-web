@@ -190,7 +190,7 @@ export const en = {
       lockVolume: "Ignore volume settings from games or software.",
       inactiveTime: "Idle auto-disconnect\n0 disables it.",
       disconnectOnDock:
-        "Drop the Bluetooth link when the controller is placed on a charger or dock. Pick it up to reconnect.",
+        "Drop the Bluetooth link when the controller is placed on a charger or dock.",
       disablePicoLed: "Turns off the always-on PICO LED. It will still blink when the controller battery is low.",
       micSelect: "0: Auto\n1: Built-in\n2: Headphone\n3: Disabled",
       speakerSelect: "0: Auto\n1: Built-in\n2: Headphone\n3: Disabled",
