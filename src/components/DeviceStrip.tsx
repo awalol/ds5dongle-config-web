@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Power, Usb } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import type { AudioActivityState } from "../protocol/ds5BridgeHid";
 
 interface DeviceStripProps {
+  children?: ReactNode;
   authorizedDevices: HIDDevice[];
   client: unknown | null;
   deviceLabel: string;
@@ -18,6 +20,7 @@ interface DeviceStripProps {
 }
 
 export function DeviceStrip({
+  children,
   authorizedDevices,
   client,
   deviceLabel,
@@ -64,6 +67,7 @@ export function DeviceStrip({
             )}
           </div>
         </div>
+        {children}
         <div className="device-actions">
           {authorizedDevices.length > 0 && !connected && (
             <Button

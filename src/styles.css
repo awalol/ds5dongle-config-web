@@ -70,6 +70,9 @@
   --app-warning: #8a4b0a;
   --app-warning-bg: #fffbeb;
   --app-warning-border: #fde68a;
+  --app-interactive: #2563eb;
+  --app-interactive-soft: #eff6ff;
+  --app-success: #047857;
   color: var(--foreground);
   background: var(--app-surface);
   font-synthesis: none;
@@ -111,6 +114,9 @@
   --app-warning: #fbbf24;
   --app-warning-bg: rgb(251 191 36 / 10%);
   --app-warning-border: rgb(251 191 36 / 28%);
+  --app-interactive: #60a5fa;
+  --app-interactive-soft: rgb(59 130 246 / 14%);
+  --app-success: #6ee7b7;
 }
 
 @layer base {
@@ -227,6 +233,44 @@ button:disabled {
   color: var(--muted-foreground);
 }
 
+.language-select-wrapper {
+  position: relative;
+}
+
+.language-select {
+  width: 132px;
+  height: 36px;
+  padding: 0 30px 0 12px;
+  color: var(--foreground);
+  background: var(--muted);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.language-select option {
+  color: var(--foreground);
+  background: var(--background);
+}
+
+.language-select:focus-visible {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 34%, transparent);
+}
+
+.language-select-chevron {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  color: var(--muted-foreground);
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
 .eyebrow,
 .label {
   color: var(--app-label);
@@ -310,6 +354,7 @@ h2 {
 }
 
 .device-strip-card {
+  overflow: hidden;
   margin-bottom: clamp(10px, 1.6vh, 16px);
   padding: 0;
   border: 0;
@@ -318,7 +363,7 @@ h2 {
 
 .device-strip {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(160px, 1fr) minmax(320px, 46%) auto;
   align-items: center;
   gap: 12px;
   padding: clamp(8px, 1.4vh, 12px);
@@ -400,7 +445,7 @@ h2 {
   display: flex;
   align-items: stretch;
   justify-content: space-between;
-  align-self: start;
+  align-self: stretch;
   gap: 18px;
   margin-top: clamp(16px, 2.2vh, 26px);
   padding: clamp(14px, 2vh, 18px) clamp(16px, 2.4vh, 22px);
@@ -523,6 +568,48 @@ h2 {
   color: var(--muted-foreground);
   font-size: 0.76rem;
   line-height: 1.25;
+}
+
+.config-inline-hint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 8px 10px;
+  color: var(--app-warning);
+  background: var(--app-warning-bg);
+  border: 1px solid var(--app-warning-border);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.config-inline-hint svg {
+  flex: 0 0 auto;
+}
+
+.config-inline-hint button {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding: 3px 8px;
+  color: inherit;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.config-inline-hint button:hover:not(:disabled) {
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.config-inline-hint button:disabled {
+  cursor: default;
+  opacity: 0.5;
 }
 
 .control-row {
@@ -665,22 +752,70 @@ h2 {
   align-items: center;
 }
 
+.compact-stack .audio-device-select-row {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.audio-device-select-wrapper {
+  position: relative;
+  width: 132px;
+  justify-self: end;
+}
+
+.audio-device-select {
+  width: 132px;
+  height: 32px;
+  padding: 0 30px 0 12px;
+  color: var(--foreground);
+  background: var(--muted);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.audio-device-select option {
+  color: var(--foreground);
+  background: var(--background);
+}
+
+.audio-device-select:focus-visible {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 34%, transparent);
+}
+
+.audio-device-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.audio-device-select-chevron {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  color: var(--muted-foreground);
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.status-gpio-pin-select-wrapper,
+.status-gpio-pin-select,
+.status-gpio-mode-select-wrapper,
+.status-gpio-mode-select {
+  width: 196px;
+}
+
 .state-box {
   margin-top: clamp(10px, 1.6vh, 14px);
   padding: clamp(10px, 1.6vh, 14px);
   background: color-mix(in srgb, var(--secondary) 72%, var(--card));
   border: 0;
   border-radius: 8px;
-}
-
-@media (min-width: 861px) {
-  .config-panel {
-    max-height: calc(100svh - clamp(10px, 1.8vh, 18px) * 2 - 152px);
-  }
-
-  .side-panel {
-    max-height: calc(100svh - clamp(10px, 1.8vh, 18px) * 2 - 152px);
-  }
 }
 
 @media (max-height: 780px) and (min-width: 861px) {
@@ -724,6 +859,11 @@ h2 {
 
   .toggle-row {
     min-height: 36px;
+  }
+
+  .compact-stack .audio-device-select-row {
+    padding-top: 2px;
+    padding-bottom: 2px;
   }
 
   .action-stack {
@@ -825,4 +965,1246 @@ h2 {
     padding: 14px;
   }
 
+}
+
+.app-layout {
+  gap: 0;
+}
+
+.app-page-nav {
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+.app-page-tabs {
+  width: min(620px, 100%);
+  height: 44px;
+  padding: 3px;
+  color: var(--muted-foreground);
+  background: color-mix(in srgb, var(--secondary) 76%, var(--card));
+  border: 0;
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.app-page-tabs [data-slot="tabs-trigger"] {
+  min-height: 38px;
+  border-radius: 8px;
+  font-weight: 750;
+}
+
+.app-page-tabs [data-slot="tabs-trigger"][data-state="active"] {
+  color: var(--app-interactive);
+  background: var(--app-interactive-soft);
+  box-shadow: none;
+}
+
+.feature-page {
+  gap: 0;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+}
+
+.feature-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--app-panel-border);
+}
+
+.feature-page-title,
+.feature-page-actions,
+.feature-page-title > div {
+  min-width: 0;
+}
+
+.feature-page-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.feature-page-title h2,
+.feature-page-title p,
+.controller-card-heading h3,
+.controller-card-heading p,
+.remap-editor h3,
+.shortcut-section-heading h3,
+.shortcut-section-heading p,
+.shortcut-editor-heading h3,
+.shortcut-empty-state h4,
+.shortcut-empty-state p {
+  margin: 0;
+}
+
+.feature-page-title h2 {
+  color: var(--app-heading);
+  font-size: 1.08rem;
+}
+
+.feature-page-title p {
+  margin-top: 4px;
+  color: var(--muted-foreground);
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+
+.feature-page-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--app-interactive);
+  background: var(--app-interactive-soft);
+  border-radius: 10px;
+}
+
+.feature-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.feature-page-actions button {
+  min-height: 40px;
+}
+
+.feature-page-content {
+  padding: 14px !important;
+}
+
+.feature-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 10px 16px;
+  color: var(--app-warning);
+  background: var(--app-warning-bg);
+  border-bottom: 1px solid var(--app-warning-border);
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.feature-warning svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.remap-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 350px);
+  gap: 14px;
+  align-items: stretch;
+}
+
+.controller-card,
+.remap-editor,
+.shortcut-slots,
+.shortcut-editor {
+  min-width: 0;
+  background: color-mix(in srgb, var(--secondary) 72%, var(--card));
+  border: 1px solid transparent;
+  border-radius: 12px;
+}
+
+.controller-card {
+  padding: 14px;
+}
+
+.controller-card-heading,
+.mapping-list-heading,
+.shortcut-section-heading,
+.shortcut-editor-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.controller-card-heading h3,
+.mapping-list-heading h3,
+.shortcut-section-heading h3,
+.shortcut-editor-heading h3 {
+  color: var(--app-heading);
+  font-size: 0.94rem;
+}
+
+.controller-card-heading p,
+.shortcut-section-heading p {
+  margin-top: 3px;
+  color: var(--muted-foreground);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.mapping-count,
+.shortcut-section-heading > span {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  padding: 0 10px;
+  color: var(--app-interactive);
+  background: var(--app-interactive-soft);
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.controller-card-tools {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.controller-model-switch {
+  display: block;
+}
+
+.controller-model-tabs {
+  height: 28px;
+}
+
+.controller-model-tabs [data-slot="tabs-trigger"] {
+  min-width: 82px;
+  padding: 0 9px;
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.controller-visual {
+  position: relative;
+  width: min(100%, 760px);
+  margin: 10px auto 0;
+  aspect-ratio: 1117 / 892;
+}
+
+.controller-visual.dualsense-edge {
+  aspect-ratio: 1313 / 1037;
+}
+
+.controller-visual.picking :is(.controller-hotspot, .controller-hotspot-hit-area) {
+  cursor: crosshair;
+}
+
+.controller-artwork-credit {
+  margin: 4px 4px 0;
+  color: var(--muted-foreground);
+  font-size: 0.72rem;
+  line-height: 1.4;
+  text-align: right;
+}
+
+.controller-artwork-credit a {
+  color: var(--app-interactive);
+  font-weight: 750;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.controller-artwork-credit a:hover {
+  color: color-mix(in srgb, var(--app-interactive) 82%, var(--foreground));
+}
+
+.controller-artwork-credit a:focus-visible {
+  border-radius: 2px;
+  outline: 3px solid color-mix(in srgb, var(--ring) 42%, transparent);
+  outline-offset: 2px;
+}
+
+.controller-artwork {
+  --controller-line-base: #7c8aa0;
+  --controller-line: var(--controller-line-base);
+  --controller-line-hover: color-mix(in srgb, var(--app-interactive) 72%, var(--controller-line-base));
+  --controller-line-active: var(--app-interactive);
+  --controller-line-width: 2.5px;
+  --controller-hover-fill: color-mix(in srgb, var(--app-interactive) 24%, transparent);
+  --controller-selected-fill: color-mix(in srgb, var(--app-interactive) 38%, transparent);
+  --controller-target-fill: color-mix(in srgb, var(--app-success) 34%, transparent);
+  --controller-part-fill: transparent;
+  --controller-glow: color-mix(in srgb, var(--app-interactive) 30%, transparent);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.controller-artwork svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  opacity: 0.72;
+}
+
+.controller-artwork svg [style*="stroke:"] {
+  stroke-width: var(--controller-line-width) !important;
+  vector-effect: non-scaling-stroke;
+}
+
+.controller-artwork :is(#t1, #t2) {
+  display: none;
+}
+
+/* State classes only re-point the shared colour tokens while
+   `.controller-part-active` carries the structural rules, so both artworks pick
+   up the exact same hover, selection and mapped-output colours. */
+.controller-artwork .controller-part-highlighted {
+  --controller-line: var(--controller-line-hover);
+  --controller-part-fill: var(--controller-hover-fill);
+}
+
+.controller-artwork .controller-part-selected {
+  --controller-line: var(--controller-line-active);
+  --controller-part-fill: var(--controller-selected-fill);
+}
+
+/* Declared last so the mapped output stays legible even when it is the source. */
+.controller-artwork .controller-part-target {
+  --controller-line: var(--app-success);
+  --controller-part-fill: var(--controller-target-fill);
+  --controller-glow: color-mix(in srgb, var(--app-success) 34%, transparent);
+}
+
+.controller-artwork .controller-part-active {
+  filter: drop-shadow(0 0 7px var(--controller-glow));
+}
+
+/* DualSense: stroked line art carrying inline colours. */
+.controller-artwork .controller-part-active[style*="stroke:"],
+.controller-artwork .controller-part-active [style*="stroke:"] {
+  stroke: var(--controller-line) !important;
+}
+
+.controller-artwork .controller-part-active[style*="fill:#7c8aa0"],
+.controller-artwork .controller-part-active [style*="fill:#7c8aa0"] {
+  fill: var(--controller-line) !important;
+}
+
+.controller-artwork
+  :is(#cross, #square, #circle, #triangle).controller-part-active
+  > circle:last-child,
+.controller-artwork
+  :is(#dpad-up, #dpad-right, #dpad-down, #dpad-left).controller-part-active
+  > path:first-child,
+.controller-artwork
+  :is(#l1, #r1, #l2, #r2, #create, #options, #touchpad, #mute).controller-part-active {
+  fill: var(--controller-part-fill) !important;
+}
+
+/* DualSense Edge: filled hairline line art plus dedicated highlight shapes. */
+.controller-artwork.dualsense-edge-artwork
+  #Main
+  :is(path, circle, ellipse, rect, polygon, polyline, line) {
+  fill: var(--controller-line);
+}
+
+.controller-artwork.dualsense-edge-artwork
+  #Main
+  :is(path, circle, ellipse, rect, polygon, polyline, line):not([style*="stroke:"]) {
+  stroke: var(--controller-line);
+  stroke-width: 1.75px;
+  vector-effect: non-scaling-stroke;
+}
+
+.controller-artwork.dualsense-edge-artwork #Main [style*="stroke:#000"] {
+  stroke: var(--controller-line) !important;
+}
+
+.controller-artwork.dualsense-edge-artwork #TPPattern {
+  opacity: 0.18;
+}
+
+.controller-artwork.dualsense-edge-artwork :is(#Background, #Cover) > * {
+  display: none;
+}
+
+.controller-artwork.dualsense-edge-artwork
+  :is(#Background, #Cover)
+  > .controller-part-active {
+  display: block;
+  fill: var(--controller-part-fill) !important;
+}
+
+/* The stick caps stay visible as an inner ring, mirroring DualSense L3/R3. */
+.controller-artwork.dualsense-edge-artwork #Cover > :is(#Active_LS, #Active_RS) {
+  display: block;
+  fill: none !important;
+  stroke: var(--controller-line);
+  stroke-width: var(--controller-line-width);
+  vector-effect: non-scaling-stroke;
+}
+
+.controller-hotspot {
+  position: absolute;
+  z-index: 1;
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  box-shadow: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  transform: translate(-50%, -50%);
+}
+
+.controller-hotspot.compact {
+  width: 42px;
+  height: 42px;
+}
+
+.controller-hotspot.wide {
+  width: 60px;
+  height: 46px;
+  border-radius: 14px;
+}
+
+.controller-hotspot.ps {
+  width: 62px;
+  height: 48px;
+}
+
+.controller-hotspot.touchpad {
+  width: 44%;
+  height: 29%;
+  border-radius: clamp(14px, 3vw, 30px);
+}
+
+.controller-hotspot.edge-touchpad {
+  width: 36.2%;
+  height: 24.7%;
+  border-radius: clamp(12px, 2.4vw, 24px);
+  pointer-events: none;
+}
+
+.controller-hotspot-hit-area {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
+}
+
+.controller-hotspot.edge-touchpad .controller-hotspot-hit-area {
+  clip-path: polygon(4% 0, 96% 0, 100% 10%, 92% 70%, 80% 100%, 20% 100%, 8% 70%, 0 10%);
+}
+
+.controller-hotspot.mute {
+  width: 72px;
+  height: 34px;
+  border-radius: 12px;
+}
+
+.controller-hotspot.paddle {
+  width: 84px;
+  height: 76px;
+  border-radius: 24px;
+}
+
+/* All eight d-pad wedges share one square centred on the pad and clip themselves
+   to the arm or corner they own, so the pad is tiled with no gaps and no overlap
+   between neighbouring directions. --dpad-arm is the arm strip edge. */
+.controller-hotspot.dpad {
+  --dpad-arm-far: calc(100% - var(--dpad-arm));
+  width: var(--dpad-span);
+  height: auto;
+  aspect-ratio: 1;
+  border-radius: 0;
+  pointer-events: none;
+}
+
+.controller-hotspot.dpad:focus-visible {
+  outline: 0;
+}
+
+/* An outline would follow the unclipped square, so the wedge itself lights up. */
+.controller-hotspot.dpad:focus-visible .controller-hotspot-hit-area {
+  background: color-mix(in srgb, var(--ring) 30%, transparent);
+}
+
+.controller-hotspot.dpad-up .controller-hotspot-hit-area {
+  clip-path: polygon(
+    var(--dpad-arm) 0,
+    var(--dpad-arm-far) 0,
+    var(--dpad-arm-far) var(--dpad-arm),
+    50% 50%,
+    var(--dpad-arm) var(--dpad-arm)
+  );
+}
+
+.controller-hotspot.dpad-up-right .controller-hotspot-hit-area {
+  clip-path: polygon(
+    var(--dpad-arm-far) 0,
+    100% 0,
+    100% var(--dpad-arm),
+    var(--dpad-arm-far) var(--dpad-arm)
+  );
+}
+
+.controller-hotspot.dpad-right .controller-hotspot-hit-area {
+  clip-path: polygon(
+    100% var(--dpad-arm),
+    100% var(--dpad-arm-far),
+    var(--dpad-arm-far) var(--dpad-arm-far),
+    50% 50%,
+    var(--dpad-arm-far) var(--dpad-arm)
+  );
+}
+
+.controller-hotspot.dpad-down-right .controller-hotspot-hit-area {
+  clip-path: polygon(
+    var(--dpad-arm-far) var(--dpad-arm-far),
+    100% var(--dpad-arm-far),
+    100% 100%,
+    var(--dpad-arm-far) 100%
+  );
+}
+
+.controller-hotspot.dpad-down .controller-hotspot-hit-area {
+  clip-path: polygon(
+    var(--dpad-arm) var(--dpad-arm-far),
+    50% 50%,
+    var(--dpad-arm-far) var(--dpad-arm-far),
+    var(--dpad-arm-far) 100%,
+    var(--dpad-arm) 100%
+  );
+}
+
+.controller-hotspot.dpad-down-left .controller-hotspot-hit-area {
+  clip-path: polygon(
+    0 var(--dpad-arm-far),
+    var(--dpad-arm) var(--dpad-arm-far),
+    var(--dpad-arm) 100%,
+    0 100%
+  );
+}
+
+.controller-hotspot.dpad-left .controller-hotspot-hit-area {
+  clip-path: polygon(
+    0 var(--dpad-arm),
+    var(--dpad-arm) var(--dpad-arm),
+    50% 50%,
+    var(--dpad-arm) var(--dpad-arm-far),
+    0 var(--dpad-arm-far)
+  );
+}
+
+.controller-hotspot.dpad-up-left .controller-hotspot-hit-area {
+  clip-path: polygon(0 0, var(--dpad-arm) 0, var(--dpad-arm) var(--dpad-arm), 0 var(--dpad-arm));
+}
+
+/* The marker rides the wedge it belongs to instead of a shared box corner. */
+.controller-hotspot.dpad.modified::after {
+  top: var(--dpad-dot-y);
+  right: auto;
+  left: var(--dpad-dot-x);
+  transform: translate(-50%, -50%);
+}
+
+.controller-hotspot.dpad-up {
+  --dpad-dot-x: 50%;
+  --dpad-dot-y: 0%;
+}
+
+.controller-hotspot.dpad-up-right {
+  --dpad-dot-x: 85%;
+  --dpad-dot-y: 15%;
+}
+
+.controller-hotspot.dpad-right {
+  --dpad-dot-x: 100%;
+  --dpad-dot-y: 50%;
+}
+
+.controller-hotspot.dpad-down-right {
+  --dpad-dot-x: 85%;
+  --dpad-dot-y: 85%;
+}
+
+.controller-hotspot.dpad-down {
+  --dpad-dot-x: 50%;
+  --dpad-dot-y: 100%;
+}
+
+.controller-hotspot.dpad-down-left {
+  --dpad-dot-x: 15%;
+  --dpad-dot-y: 85%;
+}
+
+.controller-hotspot.dpad-left {
+  --dpad-dot-x: 0%;
+  --dpad-dot-y: 50%;
+}
+
+.controller-hotspot.dpad-up-left {
+  --dpad-dot-x: 15%;
+  --dpad-dot-y: 15%;
+}
+
+.controller-hotspot.modified::after {
+  position: absolute;
+  z-index: 2;
+  top: -3px;
+  right: -3px;
+  width: 9px;
+  height: 9px;
+  content: "";
+  background: #f59e0b;
+  border: 2px solid var(--card);
+  border-radius: 999px;
+}
+
+.modifier-grid button,
+.choice-grid button {
+  min-height: 36px;
+  padding: 0 10px;
+  color: var(--foreground);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.76rem;
+  font-weight: 750;
+}
+
+.modifier-grid button[aria-pressed="true"],
+.choice-grid button[aria-pressed="true"] {
+  color: var(--app-interactive);
+  background: var(--app-interactive-soft);
+  border-color: color-mix(in srgb, var(--app-interactive) 52%, var(--border));
+}
+
+.remap-editor {
+  padding: 16px;
+}
+
+.shortcut-editor-heading div > span {
+  color: var(--muted-foreground);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mapping-flow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 12px;
+  color: var(--muted-foreground);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.mapping-flow strong:last-child {
+  color: var(--app-interactive);
+}
+
+.field-label,
+.shortcut-form label > span:first-child,
+.shortcut-consumer-field > span:first-child,
+.shortcut-output-editor label > span:first-child {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--app-label);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.select-shell {
+  position: relative;
+  display: block;
+}
+
+.select-shell::after {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  color: var(--muted-foreground);
+  content: "⌄";
+  pointer-events: none;
+  transform: translateY(-58%);
+}
+
+.select-shell select {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 36px 0 12px;
+  color: var(--foreground);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  font-size: 0.84rem;
+  font-weight: 750;
+  outline: none;
+  appearance: none;
+}
+
+.select-shell select:focus-visible {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 34%, transparent);
+}
+
+.select-shell + button,
+.remap-editor > button {
+  margin-top: 10px;
+}
+
+.remap-target-field {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.remap-target-field .select-shell {
+  flex: 1 1 150px;
+}
+
+.remap-target-field > button {
+  flex: 0 0 auto;
+  min-height: 42px;
+  margin-top: 0;
+}
+
+.remap-pick-hint {
+  margin: 8px 0 0;
+  color: var(--app-success);
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.mapping-list-section {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--app-panel-border);
+}
+
+.mapping-list-heading {
+  align-items: center;
+}
+
+.mapping-list-heading span {
+  color: var(--muted-foreground);
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.empty-copy {
+  margin: 10px 0 0;
+  color: var(--muted-foreground);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.mapping-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.mapping-list button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 7px 9px;
+  color: var(--muted-foreground);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.76rem;
+  text-align: left;
+}
+
+.mapping-list button strong {
+  color: var(--app-interactive);
+}
+
+.shortcut-workspace {
+  display: grid;
+  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.shortcut-slots,
+.shortcut-editor {
+  padding: 14px;
+}
+
+.shortcut-slot-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.shortcut-slot-list > button {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  min-height: 54px;
+  padding: 7px 9px;
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--card) 72%, transparent);
+  border: 1px solid transparent;
+  border-radius: 9px;
+  text-align: left;
+}
+
+.shortcut-slot-list > button:hover,
+.shortcut-slot-list > button[aria-pressed="true"] {
+  background: var(--card);
+  border-color: color-mix(in srgb, var(--app-interactive) 42%, var(--border));
+}
+
+.shortcut-slot-number {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  color: var(--muted-foreground);
+  background: var(--secondary);
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 900;
+}
+
+.shortcut-slot-list > button.configured .shortcut-slot-number {
+  color: var(--app-interactive);
+  background: var(--app-interactive-soft);
+}
+
+.shortcut-slot-copy {
+  min-width: 0;
+}
+
+.shortcut-slot-copy strong,
+.shortcut-slot-copy small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shortcut-slot-copy strong {
+  color: var(--app-heading);
+  font-size: 0.8rem;
+}
+
+.shortcut-slot-copy small {
+  margin-top: 3px;
+  color: var(--muted-foreground);
+  font-size: 0.7rem;
+}
+
+.shortcut-slot-state {
+  color: var(--muted-foreground);
+  font-size: 0.68rem;
+  font-weight: 850;
+}
+
+.shortcut-slot-state.enabled {
+  color: var(--app-success);
+}
+
+.shortcut-editor-heading {
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--app-panel-border);
+}
+
+.shortcut-empty-state {
+  display: flex;
+  min-height: 380px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 32px;
+  text-align: center;
+}
+
+.shortcut-empty-state > span {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  color: var(--app-interactive);
+  background: var(--app-interactive-soft);
+  border-radius: 12px;
+}
+
+.shortcut-empty-state h4 {
+  margin-top: 14px;
+  color: var(--app-heading);
+  font-size: 1rem;
+}
+
+.shortcut-empty-state p {
+  max-width: 360px;
+  margin-top: 6px;
+  color: var(--muted-foreground);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.shortcut-empty-state button {
+  margin-top: 16px;
+}
+
+.shortcut-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 14px;
+}
+
+.shortcut-form fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.shortcut-form fieldset:disabled {
+  opacity: 0.55;
+}
+
+.shortcut-form legend {
+  margin-bottom: 7px;
+  color: var(--app-label);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.choice-grid {
+  display: grid;
+  gap: 7px;
+}
+
+.gesture-choice-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.action-choice-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* Keep the mode explanation light; disclose compatibility details on demand. */
+.shortcut-gesture-help {
+  margin-top: 8px;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.shortcut-gesture-hint {
+  margin: 0;
+}
+
+.shortcut-help-details summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  min-height: 44px;
+  color: var(--app-interactive);
+  cursor: pointer;
+  list-style: none;
+  border-radius: 4px;
+}
+
+.shortcut-help-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.shortcut-help-details summary::after {
+  content: "+";
+}
+
+.shortcut-help-details[open] summary::after {
+  content: "−";
+}
+
+.shortcut-help-details summary:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.shortcut-help-details ul {
+  margin: 0 0 8px;
+  padding-left: 20px;
+  max-width: 65ch;
+  overflow-wrap: anywhere;
+}
+
+.shortcut-help-details li + li {
+  margin-top: 6px;
+}
+
+.shortcut-form .choice-grid {
+  gap: 8px;
+}
+
+.shortcut-form .choice-grid button {
+  min-height: 44px;
+}
+
+.shortcut-form .choice-grid button:disabled {
+  opacity: 0.5;
+}
+
+.shortcut-listen {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  margin-top: 10px;
+}
+
+.shortcut-listen-status {
+  flex: 1 1 200px;
+  color: var(--muted-foreground);
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.shortcut-listen.listening .shortcut-listen-status {
+  color: var(--app-interactive);
+}
+
+.choice-grid button {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  white-space: normal;
+}
+
+.shortcut-field-grid,
+.shortcut-output-editor {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.shortcut-output-editor {
+  align-items: end;
+}
+
+.modifier-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.modifier-grid button {
+  min-height: 36px;
+  padding: 4px 6px;
+  white-space: normal;
+}
+
+.shortcut-consumer-field {
+  max-width: 440px;
+}
+
+.shortcut-validation {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  padding: 9px 10px;
+  color: var(--app-error);
+  background: color-mix(in srgb, var(--destructive) 8%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--destructive) 24%, var(--border));
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.controller-hotspot:focus-visible,
+.mapping-list button:focus-visible,
+.shortcut-slot-list > button:focus-visible,
+.modifier-grid button:focus-visible,
+.choice-grid button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--ring) 42%, transparent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 1100px) {
+  .remap-workspace,
+  .shortcut-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .shortcut-slot-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .app-page-tabs {
+    height: auto;
+  }
+
+  .app-page-tabs [data-slot="tabs-trigger"] {
+    min-height: 44px;
+  }
+
+  .feature-page-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .feature-page-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .feature-page-actions button {
+    min-width: 0;
+    padding-right: 8px;
+    padding-left: 8px;
+    white-space: normal;
+  }
+
+  .controller-card-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .controller-card-tools {
+    justify-content: space-between;
+  }
+
+  .controller-hotspot {
+    width: 38px;
+    height: 38px;
+  }
+
+  .controller-hotspot.compact {
+    width: 32px;
+    height: 32px;
+  }
+
+  .controller-hotspot.wide {
+    width: 50px;
+    height: 38px;
+  }
+
+  .controller-hotspot.ps {
+    width: 50px;
+    height: 38px;
+  }
+
+  .controller-hotspot.mute {
+    width: 56px;
+    height: 28px;
+  }
+
+  .controller-hotspot.paddle {
+    width: 64px;
+    height: 58px;
+  }
+
+  .shortcut-slot-list {
+    grid-template-columns: 1fr;
+  }
+
+  .shortcut-field-grid,
+  .shortcut-output-editor {
+    grid-template-columns: 1fr;
+  }
+
+  .gesture-choice-grid,
+  .action-choice-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .modifier-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .app-page-tabs [data-slot="tabs-trigger"] {
+    gap: 4px;
+    padding-right: 5px;
+    padding-left: 5px;
+    font-size: 0.75rem;
+  }
+
+  .app-page-tabs [data-slot="tabs-trigger"] svg {
+    display: none;
+  }
+
+  .feature-page-content {
+    padding: 9px !important;
+  }
+
+  .controller-card,
+  .remap-editor,
+  .shortcut-slots,
+  .shortcut-editor {
+    padding: 11px;
+  }
+
+  .feature-page-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .controller-hotspot {
+    width: 30px;
+    height: 30px;
+  }
+
+  .controller-hotspot.compact {
+    width: 26px;
+    height: 26px;
+  }
+
+  .controller-hotspot.wide {
+    width: 42px;
+    height: 32px;
+  }
+
+  .controller-hotspot.ps {
+    width: 42px;
+    height: 32px;
+  }
+
+  .controller-hotspot.mute {
+    width: 46px;
+    height: 24px;
+  }
+
+  .controller-hotspot.paddle {
+    width: 50px;
+    height: 44px;
+  }
 }

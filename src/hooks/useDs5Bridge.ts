@@ -10,23 +10,53 @@ import {
   validateConfig,
 } from "../protocol/config";
 import {
+  BUTTON_REMAP_COUNT,
+  BUTTON_SOURCE_COUNT,
+  DEFAULT_BUTTON_REMAP,
+  SHORTCUT_COUNT,
+  ShortcutSlot,
+  buttonRemapsEqual,
+  createDefaultShortcutSlots,
+  shortcutSlotsEqual,
+  ButtonProtocolError,
+} from "../protocol/buttons";
+import {
   Ds5BridgeHidClient,
   NO_DEVICE_SELECTED_ERROR,
   WEBHID_UNAVAILABLE_ERROR,
+  getControllerModel,
   getDeviceLabel,
   webHidAvailable,
 } from "../protocol/ds5BridgeHid";
-import type { AudioActivityState } from "../protocol/ds5BridgeHid";
+import type { AudioActivityState, ControllerModel } from "../protocol/ds5BridgeHid";
+import { decodePressedButtons, resolvePhysicalButton } from "../protocol/controllerState";
 
-type Operation = "connecting" | "reading" | "readingFirmware" | "applying" | "saving" | "reconnecting" | null;
+type Operation =
+  | "connecting"
+  | "reading"
+  | "readingFirmware"
+  | "readingButtons"
+  | "applying"
+  | "saving"
+  | "savingRemap"
+  | "savingShortcuts"
+  | "reconnecting"
+  | null;
 type SaveState = "idle" | "dirty" | "applied" | "saved";
-type UsbEffectiveConfig = Pick<ConfigBody, "pollingRateMode" | "controllerMode" | "enableUsbSn">;
+type UsbEffectiveConfig = Pick<
+  ConfigBody,
+  "pollingRateMode" | "controllerMode" | "enableUsbSn" | "enableKeyboard" | "enableWake"
+>;
 
 const SIGNAL_STRENGTH_REFRESH_INTERVAL_MS = 5_000;
+
+/** Receives the physical controls held down, as source ids matching BUTTON_NAMES. */
+export type ControllerButtonListener = (pressed: readonly number[]) => void;
 
 export interface UseDs5BridgeResult {
   supported: boolean;
   client: Ds5BridgeHidClient | null;
+  controllerModel: ControllerModel | null;
   deviceLabel: string;
   firmwareVersion: string | null;
   signalStrengthRssi: number | null;
@@ -34,6 +64,8 @@ export interface UseDs5BridgeResult {
   authorizedDevices: HIDDevice[];
   config: ConfigBody | null;
   draft: ConfigBody;
+  buttonRemap: number[];
+  shortcuts: ShortcutSlot[];
   issues: ConfigValidationIssue[];
   saveState: SaveState;
   operation: Operation;
@@ -41,6 +73,8 @@ export interface UseDs5BridgeResult {
   statusText: string;
   isConnected: boolean;
   isDirty: boolean;
+  isButtonRemapDirty: boolean;
+  areShortcutsDirty: boolean;
   isDefaultConfig: boolean;
   needsUsbReconnect: boolean;
   setDraftField: <Key extends keyof ConfigBody>(field: Key, value: ConfigBody[Key]) => void;
@@ -48,6 +82,16 @@ export interface UseDs5BridgeResult {
   connect: () => Promise<void>;
   connectAuthorized: (device: HIDDevice) => Promise<void>;
   readConfig: () => Promise<void>;
+  readButtonSettings: () => Promise<void>;
+  setButtonRemap: (source: number, target: number) => void;
+  resetButtonRemap: () => void;
+  saveButtonRemap: () => Promise<void>;
+  subscribeControllerButtons: (listener: ControllerButtonListener) => () => void;
+  startShortcutLearning: () => Promise<void>;
+  setShortcut: (slot: number, shortcut: ShortcutSlot) => void;
+  clearShortcut: (slot: number) => void;
+  resetShortcuts: () => void;
+  saveShortcuts: () => Promise<void>;
   saveToFlash: () => Promise<void>;
   reconnectUsb: () => Promise<void>;
   resetToDefaults: () => Promise<void>;
@@ -64,6 +108,11 @@ export function useDs5Bridge(): UseDs5BridgeResult {
   const [audioActivity, setAudioActivity] = useState<AudioActivityState | null>(null);
   const [config, setConfig] = useState<ConfigBody | null>(null);
   const [draft, setDraft] = useState<ConfigBody>(DEFAULT_CONFIG);
+  const [buttonRemap, setButtonRemapState] = useState<number[]>([...DEFAULT_BUTTON_REMAP]);
+  const [savedButtonRemap, setSavedButtonRemap] = useState<number[]>([...DEFAULT_BUTTON_REMAP]);
+  const [shortcuts, setShortcuts] = useState<ShortcutSlot[]>(createDefaultShortcutSlots);
+  const [buttonListeners, setButtonListeners] = useState<readonly ControllerButtonListener[]>([]);
+  const [savedShortcuts, setSavedShortcuts] = useState<ShortcutSlot[]>(createDefaultShortcutSlots);
   const [operation, setOperation] = useState<Operation>(null);
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -78,7 +127,10 @@ export function useDs5Bridge(): UseDs5BridgeResult {
   const issues = useMemo(() => validateConfig(draft), [draft]);
   const isConnected = Boolean(client?.device.opened);
   const isDirty = !configsEqual(config, draft);
+  const isButtonRemapDirty = !buttonRemapsEqual(buttonRemap, savedButtonRemap);
+  const areShortcutsDirty = !shortcutSlotsEqual(shortcuts, savedShortcuts);
   const isDefaultConfig = configsEqual(draft, DEFAULT_CONFIG);
+  const controllerModel = getControllerModel(client?.device ?? null);
   const deviceLabel = getDeviceLabel(client?.device ?? null);
 
   const statusText = useMemo(() => {
@@ -91,7 +143,7 @@ export function useDs5Bridge(): UseDs5BridgeResult {
     if (!client) {
       return t("status.ready");
     }
-    if (isDirty) {
+    if (isDirty || isButtonRemapDirty || areShortcutsDirty) {
       return t("status.unsaved");
     }
     if (saveState === "applied") {
@@ -101,7 +153,7 @@ export function useDs5Bridge(): UseDs5BridgeResult {
       return t("status.saved");
     }
     return t("status.connected");
-  }, [client, isDirty, operation, saveState, supported, t]);
+  }, [areShortcutsDirty, client, isButtonRemapDirty, isDirty, operation, saveState, supported, t]);
 
   const refreshAuthorizedDevices = useCallback(async () => {
     if (!supported) {
@@ -135,6 +187,21 @@ export function useDs5Bridge(): UseDs5BridgeResult {
     setOperation("readingFirmware");
     try {
       setFirmwareVersion(await nextClient.readFirmwareVersion());
+      setError(null);
+    } finally {
+      setOperation(null);
+    }
+  }, []);
+
+  const readButtonSettingsWithClient = useCallback(async (nextClient: Ds5BridgeHidClient) => {
+    setOperation("readingButtons");
+    try {
+      const nextRemap = await nextClient.readButtonRemap();
+      const nextShortcuts = await nextClient.readShortcuts();
+      setSavedButtonRemap(nextRemap);
+      setButtonRemapState([...nextRemap]);
+      setSavedShortcuts(nextShortcuts);
+      setShortcuts(nextShortcuts.map(cloneShortcut));
       setError(null);
     } finally {
       setOperation(null);
@@ -178,9 +245,15 @@ export function useDs5Bridge(): UseDs5BridgeResult {
         setError(errorMessage(cause, t));
         setOperation(null);
       }
+      try {
+        await readButtonSettingsWithClient(nextClient);
+      } catch (cause) {
+        setError(errorMessage(cause, t));
+        setOperation(null);
+      }
       void readSignalStrengthWithClient(nextClient);
     },
-    [readConfigWithClient, readFirmwareVersionWithClient, readSignalStrengthWithClient, t],
+    [readButtonSettingsWithClient, readConfigWithClient, readFirmwareVersionWithClient, readSignalStrengthWithClient, t],
   );
 
   const connect = useCallback(async () => {
@@ -218,6 +291,19 @@ export function useDs5Bridge(): UseDs5BridgeResult {
     }
   }, [client, readConfigWithClient, t]);
 
+  const readButtonSettings = useCallback(async () => {
+    if (!client) {
+      return;
+    }
+
+    try {
+      await readButtonSettingsWithClient(client);
+    } catch (cause) {
+      setError(errorMessage(cause, t));
+      setOperation(null);
+    }
+  }, [client, readButtonSettingsWithClient, t]);
+
   const applyLatestDraft = useCallback(async (): Promise<boolean> => {
     if (applyingRef.current) {
       applyQueuedRef.current = true;
@@ -240,16 +326,16 @@ export function useDs5Bridge(): UseDs5BridgeResult {
           break;
         }
 
-        await nextClient.applyConfig(nextDraft);
-        configRef.current = nextDraft;
-        setConfig(nextDraft);
-        setNeedsUsbReconnect(usbEffectiveConfigChanged(usbEffectiveConfigRef.current, nextDraft));
+        const appliedConfig = normalizeConfig(await nextClient.applyConfig(nextDraft));
+        configRef.current = appliedConfig;
+        setConfig(appliedConfig);
+        setNeedsUsbReconnect(usbEffectiveConfigChanged(usbEffectiveConfigRef.current, appliedConfig));
         setSaveState("applied");
         setError(null);
 
         if (configsEqual(draftRef.current, nextDraft)) {
-          draftRef.current = nextDraft;
-          setDraft(nextDraft);
+          draftRef.current = appliedConfig;
+          setDraft(appliedConfig);
         }
 
         if (!applyQueuedRef.current && configsEqual(configRef.current, draftRef.current)) {
@@ -317,6 +403,139 @@ export function useDs5Bridge(): UseDs5BridgeResult {
     [applyLatestDraft],
   );
 
+  const setButtonRemap = useCallback((source: number, target: number) => {
+    if (
+      !clientRef.current?.device.opened ||
+      !Number.isInteger(source) ||
+      source < 0 ||
+      source >= BUTTON_SOURCE_COUNT ||
+      !Number.isInteger(target) ||
+      target < 0 ||
+      target >= BUTTON_REMAP_COUNT
+    ) {
+      return;
+    }
+
+    setButtonRemapState((current) => {
+      const next = [...current];
+      next[source] = target;
+      return next;
+    });
+    setSaveState("dirty");
+  }, []);
+
+  const resetButtonRemap = useCallback(() => {
+    if (!clientRef.current?.device.opened) {
+      return;
+    }
+    setButtonRemapState([...DEFAULT_BUTTON_REMAP]);
+    setSaveState("dirty");
+  }, []);
+
+  const saveButtonRemap = useCallback(async () => {
+    if (!client || !isButtonRemapDirty) {
+      return;
+    }
+
+    setOperation("savingRemap");
+    try {
+      const applied = await client.applyButtonRemap(buttonRemap);
+      setSavedButtonRemap(applied);
+      setButtonRemapState([...applied]);
+      setSaveState("saved");
+      setError(null);
+    } catch (cause) {
+      setError(errorMessage(cause, t));
+    } finally {
+      setOperation(null);
+    }
+  }, [buttonRemap, client, isButtonRemapDirty, t]);
+
+  const subscribeControllerButtons = useCallback((listener: ControllerButtonListener) => {
+    setButtonListeners((current) => [...current, listener]);
+    return () => setButtonListeners((current) => current.filter((entry) => entry !== listener));
+  }, []);
+
+  // Starts the firmware's capture window. Listeners suppress the resulting
+  // button press themselves; the window covers the shortcut state machine.
+  const startShortcutLearning = useCallback(async () => {
+    const nextClient = clientRef.current;
+    if (!nextClient) {
+      return;
+    }
+    try {
+      await nextClient.startShortcutLearning();
+    } catch (cause) {
+      setError(errorMessage(cause, t));
+    }
+  }, [t]);
+
+  // Input reports arrive at the controller's polling rate, so the listener is
+  // only attached while something is actually watching for button presses.
+  useEffect(() => {
+    const device = client?.device;
+    if (!device || buttonListeners.length === 0) {
+      return;
+    }
+
+    const onInputReport = (event: HIDInputReportEvent) => {
+      const reported = decodePressedButtons(event.reportId, event.data);
+      if (!reported) {
+        return;
+      }
+
+      const pressed = reported.map((button) => resolvePhysicalButton(button, savedButtonRemap));
+      buttonListeners.forEach((listener) => listener(pressed));
+    };
+
+    device.addEventListener("inputreport", onInputReport);
+    return () => device.removeEventListener("inputreport", onInputReport);
+  }, [buttonListeners, client, savedButtonRemap]);
+
+  const setShortcut = useCallback((slot: number, shortcut: ShortcutSlot) => {
+    if (!clientRef.current?.device.opened || !Number.isInteger(slot) || slot < 0 || slot >= SHORTCUT_COUNT) {
+      return;
+    }
+
+    setShortcuts((current) => {
+      const next = current.map(cloneShortcut);
+      next[slot] = cloneShortcut(shortcut);
+      return next;
+    });
+    setSaveState("dirty");
+  }, []);
+
+  const clearShortcut = useCallback((slot: number) => {
+    setShortcut(slot, createDefaultShortcutSlots()[0]);
+  }, [setShortcut]);
+
+  const resetShortcuts = useCallback(() => {
+    if (!clientRef.current?.device.opened) {
+      return;
+    }
+    setShortcuts(createDefaultShortcutSlots());
+    setSaveState("dirty");
+  }, []);
+
+  const saveShortcuts = useCallback(async () => {
+    if (!client || !areShortcutsDirty) {
+      return;
+    }
+
+    setOperation("savingShortcuts");
+    try {
+      const applied = await client.applyShortcuts(shortcuts);
+      setSavedShortcuts(applied);
+      setShortcuts(applied.map(cloneShortcut));
+      setSaveState("saved");
+      setError(null);
+    } catch (cause) {
+      setError(errorMessage(cause, t));
+    } finally {
+      setOperation(null);
+    }
+  }, [areShortcutsDirty, client, shortcuts, t]);
+
   const resetToDefaults = useCallback(async () => {
     const nextClient = clientRef.current;
     if (!nextClient) {
@@ -377,6 +596,10 @@ export function useDs5Bridge(): UseDs5BridgeResult {
         setAudioActivity(null);
         setConfig(null);
         setDraft(DEFAULT_CONFIG);
+        setSavedButtonRemap([...DEFAULT_BUTTON_REMAP]);
+        setButtonRemapState([...DEFAULT_BUTTON_REMAP]);
+        setSavedShortcuts(createDefaultShortcutSlots());
+        setShortcuts(createDefaultShortcutSlots());
         setNeedsUsbReconnect(false);
         setSaveState("idle");
         setError(t("errors.disconnected"));
@@ -400,6 +623,7 @@ export function useDs5Bridge(): UseDs5BridgeResult {
   return {
     supported,
     client,
+    controllerModel,
     deviceLabel,
     firmwareVersion,
     signalStrengthRssi,
@@ -407,6 +631,8 @@ export function useDs5Bridge(): UseDs5BridgeResult {
     authorizedDevices,
     config,
     draft,
+    buttonRemap,
+    shortcuts,
     issues,
     saveState,
     operation,
@@ -414,6 +640,8 @@ export function useDs5Bridge(): UseDs5BridgeResult {
     statusText,
     isConnected,
     isDirty,
+    isButtonRemapDirty,
+    areShortcutsDirty,
     isDefaultConfig,
     needsUsbReconnect,
     setDraftField,
@@ -421,6 +649,16 @@ export function useDs5Bridge(): UseDs5BridgeResult {
     connect,
     connectAuthorized,
     readConfig,
+    readButtonSettings,
+    setButtonRemap,
+    resetButtonRemap,
+    saveButtonRemap,
+    subscribeControllerButtons,
+    startShortcutLearning,
+    setShortcut,
+    clearShortcut,
+    resetShortcuts,
+    saveShortcuts,
     saveToFlash,
     reconnectUsb,
     resetToDefaults,
@@ -436,10 +674,16 @@ function operationLabel(operation: Exclude<Operation, null>, t: (key: string) =>
       return t("status.reading");
     case "readingFirmware":
       return t("status.readingFirmware");
+    case "readingButtons":
+      return t("status.readingButtons");
     case "applying":
       return t("status.applying");
     case "saving":
       return t("status.saving");
+    case "savingRemap":
+      return t("status.savingRemap");
+    case "savingShortcuts":
+      return t("status.savingShortcuts");
     case "reconnecting":
       return t("status.reconnecting");
   }
@@ -450,6 +694,8 @@ function pickUsbEffectiveConfig(config: ConfigBody): UsbEffectiveConfig {
     pollingRateMode: config.pollingRateMode,
     controllerMode: config.controllerMode,
     enableUsbSn: config.enableUsbSn,
+    enableKeyboard: config.enableKeyboard,
+    enableWake: config.enableWake,
   };
 }
 
@@ -461,11 +707,17 @@ function usbEffectiveConfigChanged(current: UsbEffectiveConfig | null, next: Con
   return (
     current.pollingRateMode !== next.pollingRateMode ||
     current.controllerMode !== next.controllerMode ||
-    current.enableUsbSn !== next.enableUsbSn
+    current.enableUsbSn !== next.enableUsbSn ||
+    current.enableKeyboard !== next.enableKeyboard ||
+    current.enableWake !== next.enableWake
   );
 }
 
 function errorMessage(cause: unknown, t: (key: string, values?: Record<string, unknown>) => string): string {
+  if (cause instanceof ButtonProtocolError) {
+    return t(`errors.${cause.code}`, cause.values);
+  }
+
   if (cause instanceof ConfigDecodeError) {
     if (cause.code === "invalidConfig") {
       const fields = Array.isArray(cause.values.issues) ? cause.values.issues : [];
@@ -494,4 +746,11 @@ function errorMessage(cause: unknown, t: (key: string, values?: Record<string, u
   }
 
   return t("errors.unexpectedWebHid");
+}
+
+function cloneShortcut(shortcut: ShortcutSlot): ShortcutSlot {
+  return {
+    ...shortcut,
+    payload: [...shortcut.payload] as [number, number, number],
+  };
 }

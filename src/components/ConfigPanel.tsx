@@ -1,12 +1,15 @@
-import { Gauge, Gamepad2, SlidersHorizontal, Volume2, Zap } from "lucide-react";
+import { AlertTriangle, Cable, Gauge, Gamepad2, SlidersHorizontal, Volume2, Zap } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UseDs5BridgeResult } from "../hooks/useDs5Bridge";
-import { fieldIssue } from "../protocol/config";
+import { fieldIssue, shouldSuggestSinglePacket, STATUS_GPIO_DISABLED } from "../protocol/config";
+import { AudioDeviceSelectControl } from "./config/AudioDeviceSelectControl";
 import { ControllerModeControl } from "./config/ControllerModeControl";
 import { FloatControl } from "./config/FloatControl";
 import { IntegerControl } from "./config/IntegerControl";
 import { PollingRateControl } from "./config/PollingRateControl";
+import { StatusGpioModeControl } from "./config/StatusGpioModeControl";
+import { StatusGpioPinControl } from "./config/StatusGpioPinControl";
 import { ToggleControl } from "./config/ToggleControl";
 
 interface ConfigPanelProps {
@@ -96,11 +99,31 @@ export function ConfigPanel({ bridge }: ConfigPanelProps) {
                 label={t("config.audioBufferLength")}
                 value={bridge.draft.audioBufferLength}
                 min={16}
-                max={127}
+                max={128}
                 helpContent={t("config.help.audioBufferLength")}
                 issue={fieldIssue(bridge.issues, "audioBufferLength")}
                 disabled={controlsDisabled}
                 onChange={(value) => bridge.setDraftField("audioBufferLength", value)}
+              />
+              {shouldSuggestSinglePacket(bridge.draft) && (
+                <div className="config-inline-hint" role="status">
+                  <AlertTriangle size={16} aria-hidden="true" />
+                  <span>{t("config.singlePacketHint")}</span>
+                  <button
+                    type="button"
+                    disabled={controlsDisabled}
+                    onClick={() => bridge.setDraftField("packetMode", 1)}
+                  >
+                    {t("config.enableSinglePacket")}
+                  </button>
+                </div>
+              )}
+              <ToggleControl
+                label={t("config.lockVolume")}
+                value={bridge.draft.lockVolume}
+                helpContent={t("config.help.lockVolume")}
+                disabled={controlsDisabled}
+                onChange={(value) => bridge.setDraftField("lockVolume", value)}
               />
             </div>
           </section>
@@ -121,6 +144,42 @@ export function ConfigPanel({ bridge }: ConfigPanelProps) {
                 helpContent={t("config.help.pollingRateMode")}
                 disabled={controlsDisabled}
                 onChange={(value) => bridge.setDraftField("pollingRateMode", value)}
+              />
+              <ToggleControl
+                label={t("config.packetMode")}
+                value={bridge.draft.packetMode === 1}
+                helpContent={t("config.help.packetMode")}
+                disabled={controlsDisabled}
+                onChange={(value) => bridge.setDraftField("packetMode", value ? 1 : 0)}
+              />
+            </div>
+          </section>
+
+          <section className="config-section">
+            <div className="config-section-heading">
+              <span className="config-section-icon">
+                <Cable size={17} />
+              </span>
+              <div>
+                <h3>{t("config.sections.integration")}</h3>
+                <p>{t("config.sections.integrationDescription")}</p>
+              </div>
+            </div>
+            <div className="control-stack compact-stack">
+              <StatusGpioPinControl
+                label={t("config.statusGpioPin")}
+                value={bridge.draft.statusGpioPin}
+                helpContent={t("config.help.statusGpioPin")}
+                issue={fieldIssue(bridge.issues, "statusGpioPin")}
+                disabled={controlsDisabled}
+                onChange={(value) => bridge.setDraftField("statusGpioPin", value)}
+              />
+              <StatusGpioModeControl
+                label={t("config.statusGpioMode")}
+                value={bridge.draft.statusGpioMode}
+                helpContent={t("config.help.statusGpioMode")}
+                disabled={controlsDisabled || bridge.draft.statusGpioPin === STATUS_GPIO_DISABLED}
+                onChange={(value) => bridge.setDraftField("statusGpioMode", value)}
               />
             </div>
           </section>
@@ -149,6 +208,13 @@ export function ConfigPanel({ bridge }: ConfigPanelProps) {
                 onChange={(value) => bridge.setDraftField("inactiveTime", value)}
               />
               <ToggleControl
+                label={t("config.disconnectOnDock")}
+                value={bridge.draft.disconnectOnDock}
+                helpContent={t("config.help.disconnectOnDock")}
+                disabled={controlsDisabled}
+                onChange={(value) => bridge.setDraftField("disconnectOnDock", value)}
+              />
+              <ToggleControl
                 label={t("config.disablePicoLed")}
                 value={bridge.draft.disablePicoLed}
                 helpContent={t("config.help.disablePicoLed")}
@@ -156,25 +222,25 @@ export function ConfigPanel({ bridge }: ConfigPanelProps) {
                 onChange={(value) => bridge.setDraftField("disablePicoLed", value)}
               />
               <ToggleControl
-                label={t("config.disableMic")}
-                value={bridge.draft.disableMic}
-                helpContent={t("config.help.disableMic")}
-                disabled={controlsDisabled}
-                onChange={(value) => bridge.setDraftField("disableMic", value)}
-              />
-              <ToggleControl
-                label={t("config.disableSpeaker")}
-                value={bridge.draft.disableSpeaker}
-                helpContent={t("config.help.disableSpeaker")}
-                disabled={controlsDisabled}
-                onChange={(value) => bridge.setDraftField("disableSpeaker", value)}
-              />
-              <ToggleControl
                 label={t("config.enableWake")}
                 value={bridge.draft.enableWake}
                 helpContent={t("config.help.enableWake")}
                 disabled={controlsDisabled}
                 onChange={(value) => bridge.setDraftField("enableWake", value)}
+              />
+              <AudioDeviceSelectControl
+                label={t("config.micSelect")}
+                value={bridge.draft.micSelect}
+                helpContent={t("config.help.micSelect")}
+                disabled={controlsDisabled}
+                onChange={(value) => bridge.setDraftField("micSelect", value)}
+              />
+              <AudioDeviceSelectControl
+                label={t("config.speakerSelect")}
+                value={bridge.draft.speakerSelect}
+                helpContent={t("config.help.speakerSelect")}
+                disabled={controlsDisabled}
+                onChange={(value) => bridge.setDraftField("speakerSelect", value)}
               />
             </div>
           </section>
@@ -204,11 +270,11 @@ export function ConfigPanel({ bridge }: ConfigPanelProps) {
                 onChange={(value) => bridge.setDraftField("enableUsbSn", value)}
               />
               <ToggleControl
-                label={t("config.psShortcutEnabled")}
-                value={bridge.draft.psShortcutEnabled}
-                helpContent={t("config.help.psShortcutEnabled")}
+                label={t("config.enableKeyboard")}
+                value={bridge.draft.enableKeyboard}
+                helpContent={t("config.help.enableKeyboard")}
                 disabled={controlsDisabled}
-                onChange={(value) => bridge.setDraftField("psShortcutEnabled", value)}
+                onChange={(value) => bridge.setDraftField("enableKeyboard", value)}
               />
             </div>
           </section>

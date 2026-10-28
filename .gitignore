@@ -3,3 +3,6 @@ dist
 *.tsbuildinfo
 *.log
 .idea
+.agents
+.claude
+.DS_Store
