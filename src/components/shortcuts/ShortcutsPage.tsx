@@ -15,6 +15,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 import type { UseDs5BridgeResult } from "@/hooks/useDs5Bridge";
 import {
   BUTTON_SOURCE_COUNT,
@@ -26,6 +27,7 @@ import {
   SHORTCUT_COUNT,
   SHORTCUT_FLAG_DOUBLE_TAP,
   SHORTCUT_FLAG_HOLD,
+  SHORTCUT_FLAG_MODIFIER_HOLD,
   SHORTCUT_TRIGGER_DOUBLE_TAP,
   SHORTCUT_TRIGGER_TAP,
   ShortcutSlot,
@@ -58,10 +60,14 @@ const LEARNING_WINDOW_MS = 5_000;
 export function ShortcutsPage({ bridge }: ShortcutsPageProps) {
   const { t } = useTranslation();
   const gestureHintId = useId();
+  const validationId = useId();
+  const fieldLabelId = useId();
+  const modifierHoldSwitchId = useId();
   const { setShortcut, startShortcutLearning, subscribeControllerButtons } = bridge;
   const [selectedSlotIndex, setSelectedSlotIndex] = useState(0);
   const [isListening, setIsListening] = useState(false);
   const [capturedButtons, setCapturedButtons] = useState<number[]>([]);
+  const [captureNeedsPair, setCaptureNeedsPair] = useState(false);
   const captureRef = useRef<number[]>([]);
   const commitCaptureRef = useRef<(buttons: readonly number[]) => void>(() => {});
   const learningTimerRef = useRef<number | undefined>(undefined);
@@ -72,6 +78,11 @@ export function ShortcutsPage({ bridge }: ShortcutsPageProps) {
     (shortcut) => isShortcutDisabled(shortcut) || isShortcutSlotValid(shortcut),
   );
   const gesture = isShortcutDisabled(selectedSlot) ? "tap" : getGesture(selectedSlot);
+  const modifierHold = gesture === "modifierHold";
+  const holdChord = gesture === "holdChord" || modifierHold;
+  const displayedGesture = modifierHold ? "holdChord" : gesture;
+  const missingModifiers = modifierHold && selectedSlot.payload[0] === 0;
+  const missingKey = modifierHold && selectedSlot.payload[1] < 0x04;
   const keyboardInterfaceEnabled = bridge.draft.enableKeyboard || bridge.draft.enableWake;
   const selectedKey = selectedSlot.payload[1];
   const keyOptions = useMemo(
@@ -99,6 +110,9 @@ export function ShortcutsPage({ bridge }: ShortcutsPageProps) {
     }
     const holdLabel = shortcut.flags & SHORTCUT_FLAG_HOLD ? ` · ${t("shortcuts.gestures.hold")}` : "";
     const first = buttonLabel(shortcut.triggerA);
+    if (shortcut.flags & SHORTCUT_FLAG_MODIFIER_HOLD) {
+      return t("shortcuts.modifierHoldSummary", { first, second: buttonLabel(shortcut.triggerB) });
+    }
     if (shortcut.triggerB === SHORTCUT_TRIGGER_TAP) {
       return first + holdLabel;
     }
@@ -133,6 +147,8 @@ export function ShortcutsPage({ bridge }: ShortcutsPageProps) {
   };
 
   const updateGesture = (nextGesture: TriggerGesture) => {
+    setIsListening(false);
+    setCaptureNeedsPair(false);
     updateSelectedSlot(setGesture(selectedSlot, nextGesture));
   };
 
@@ -171,7 +187,13 @@ export function ShortcutsPage({ bridge }: ShortcutsPageProps) {
   const commitCapture = useCallback(
     (buttons: readonly number[]) => {
       if (buttons.length === 0) return;
-      setShortcut(selectedSlotIndex, captureTrigger(selectedSlot, buttons));
+      const next = captureTrigger(selectedSlot, buttons);
+      if (getGesture(selectedSlot) === "modifierHold" && next === selectedSlot) {
+        setCaptureNeedsPair(true);
+        return;
+      }
+      setCaptureNeedsPair(false);
+      setShortcut(selectedSlotIndex, next);
     },
     [selectedSlot, selectedSlotIndex, setShortcut],
   );
@@ -194,12 +216,15 @@ export function ShortcutsPage({ bridge }: ShortcutsPageProps) {
       return;
     }
 
-    learningTimerRef.current = window.setTimeout(() => setIsListening(false), LEARNING_WINDOW_MS);
+    learningTimerRef.current = window.setTimeout(() => {
+      if (modifierHold && captureRef.current.length === 1) setCaptureNeedsPair(true);
+      setIsListening(false);
+    }, LEARNING_WINDOW_MS);
     return () => {
       window.clearTimeout(learningTimerRef.current);
       learningTimerRef.current = undefined;
     };
-  }, [isListening]);
+  }, [isListening, modifierHold]);
 
   useEffect(() => {
     if (!isListening) {
@@ -317,6 +342,7 @@ export function ShortcutsPage({ bridge }: ShortcutsPageProps) {
                     aria-pressed={selectedSlotIndex === index}
                     onClick={() => {
                       setIsListening(false);
+                      setCaptureNeedsPair(false);
                       setSelectedSlotIndex(index);
                     }}
                   >
@@ -376,9 +402,9 @@ export function ShortcutsPage({ bridge }: ShortcutsPageProps) {
                         key={option}
                         type="button"
                         disabled={isHoldGesture(option) && selectedSlot.action !== SHORTCUT_ACTION_KEYBOARD}
-                        aria-describedby={gesture === option ? gestureHintId : undefined}
-                        aria-pressed={gesture === option}
-                        onClick={() => updateGesture(option)}
+                        aria-describedby={displayedGesture === option ? gestureHintId : undefined}
+                        aria-pressed={displayedGesture === option}
+                        onClick={() => updateGesture(option === "holdChord" && modifierHold ? "modifierHold" : option)}
                       >
                         {t(`shortcuts.gestures.${option}`)}
                       </button>
@@ -409,6 +435,7 @@ export function ShortcutsPage({ bridge }: ShortcutsPageProps) {
                           setIsListening(false);
                           return;
                         }
+                        setCaptureNeedsPair(false);
                         setIsListening(true);
                         // Each capture pass opens a fresh firmware window.
                         void startShortcutLearning();
@@ -419,21 +446,43 @@ export function ShortcutsPage({ bridge }: ShortcutsPageProps) {
                     </Button>
                     <span className="shortcut-listen-status" role="status">
                       {!isListening
-                        ? t("shortcuts.listenHint")
+                        ? t(captureNeedsPair ? "shortcuts.modifierHoldCaptureNeedsPair"
+                          : modifierHold ? "shortcuts.modifierHoldListenHint" : "shortcuts.listenHint")
                         : capturedButtons.length === 0
-                          ? t("shortcuts.listenWaiting")
-                          : t("shortcuts.listenCaptured", {
-                              buttons: capturedButtons.map(buttonLabel).join(" + "),
-                            })}
+                          ? t(modifierHold ? "shortcuts.modifierHoldListenHint" : "shortcuts.listenWaiting")
+                          : modifierHold
+                            ? t(capturedButtons.length === 1 ? "shortcuts.modifierHoldCaptureWaiting"
+                              : "shortcuts.modifierHoldCaptured", {
+                                first: buttonLabel(capturedButtons[0]),
+                                second: capturedButtons.length > 1 ? buttonLabel(capturedButtons[1]) : "",
+                              })
+                            : t("shortcuts.listenCaptured", {
+                                buttons: capturedButtons.map(buttonLabel).join(" + "),
+                              })}
                     </span>
                   </div>
+                  {holdChord && (
+                    <div className="shortcut-modifier-hold">
+                      <label htmlFor={modifierHoldSwitchId}>
+                        {t("shortcuts.modifierHoldToggle")}
+                      </label>
+                      <Switch
+                        id={modifierHoldSwitchId}
+                        checked={modifierHold}
+                        disabled={!bridge.isConnected || isBusy}
+                        onCheckedChange={(checked) => updateGesture(checked ? "modifierHold" : "holdChord")}
+                        aria-describedby={gestureHintId}
+                      />
+                    </div>
+                  )}
                 </fieldset>
 
                 <div className="shortcut-field-grid">
                   <label>
-                    <span>{t("shortcuts.triggerA")}</span>
+                    <span id={`${fieldLabelId}-a`}>{t(modifierHold ? "shortcuts.modifierHoldTriggerA" : "shortcuts.triggerA")}</span>
                     <span className="select-shell">
                       <select
+                        aria-labelledby={`${fieldLabelId}-a`}
                         value={selectedSlot.triggerA}
                         disabled={!bridge.isConnected || isBusy}
                         onChange={(event) => updateTriggerA(Number(event.target.value))}
@@ -449,9 +498,10 @@ export function ShortcutsPage({ bridge }: ShortcutsPageProps) {
 
                   {isChordGesture(gesture) && (
                     <label>
-                      <span>{t("shortcuts.triggerB")}</span>
+                      <span id={`${fieldLabelId}-b`}>{t(modifierHold ? "shortcuts.modifierHoldTriggerB" : "shortcuts.triggerB")}</span>
                       <span className="select-shell">
                         <select
+                          aria-labelledby={`${fieldLabelId}-b`}
                           value={selectedSlot.triggerB}
                           disabled={!bridge.isConnected || isBusy}
                           onChange={(event) =>
@@ -509,7 +559,9 @@ export function ShortcutsPage({ bridge }: ShortcutsPageProps) {
 
                 {selectedSlot.action === SHORTCUT_ACTION_KEYBOARD && (
                   <div className="shortcut-output-editor">
-                    <div>
+                    <div role="group" aria-label={t("shortcuts.modifiers")}
+                      aria-invalid={missingModifiers || undefined}
+                      aria-describedby={missingModifiers ? validationId : undefined}>
                       <span className="field-label">{t("shortcuts.modifiers")}</span>
                       <div className="modifier-grid">
                         {MODIFIER_OPTIONS.map(({ value, label }) => {
@@ -534,10 +586,13 @@ export function ShortcutsPage({ bridge }: ShortcutsPageProps) {
                       </div>
                     </div>
                     <label>
-                      <span>{t("shortcuts.key")}</span>
+                      <span id={`${fieldLabelId}-key`}>{t("shortcuts.key")}</span>
                       <span className="select-shell">
                         <select
+                          aria-labelledby={`${fieldLabelId}-key`}
                           value={selectedSlot.payload[1]}
+                          aria-invalid={missingKey || undefined}
+                          aria-describedby={missingKey ? validationId : undefined}
                           disabled={!bridge.isConnected || isBusy}
                           onChange={(event) =>
                             updateSelectedSlot({
@@ -583,9 +638,12 @@ export function ShortcutsPage({ bridge }: ShortcutsPageProps) {
                 )}
 
                 {!isShortcutSlotValid(selectedSlot) && (
-                  <p className="shortcut-validation" role="alert">
+                  <p id={validationId} className="shortcut-validation" role="alert">
                     <AlertTriangle size={15} aria-hidden="true" />
-                    {t("shortcuts.invalidDescription")}
+                    {t(missingModifiers && missingKey ? "shortcuts.modifierHoldMissingBoth"
+                      : missingModifiers ? "shortcuts.modifierHoldMissingModifiers"
+                        : missingKey ? "shortcuts.modifierHoldMissingKey"
+                          : "shortcuts.invalidDescription")}
                   </p>
                 )}
               </div>

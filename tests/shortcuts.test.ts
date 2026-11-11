@@ -31,7 +31,7 @@ describe("hold wire protocol", () => {
     ["disconnect", { action: SHORTCUT_ACTION_BT_DISCONNECT }],
     ["same button", { triggerB: 9 }],
     ["two dpad directions", { triggerA: 0, triggerB: 1 }],
-    ["unknown flag", { flags: 4 }],
+    ["unknown flag", { flags: 8 }],
   ] as const) {
     test(`rejects ${name} while holding`, () => {
       const invalid = { ...hold, ...patch };

@@ -14,6 +14,7 @@ import {
   encodeShortcutSlots,
   REPORT_BUTTON_REMAP,
   REPORT_BUTTON_SHORTCUT,
+  SHORTCUT_FLAG_MODIFIER_HOLD,
   shortcutSlotsEqual,
 } from "./buttons";
 
@@ -158,7 +159,12 @@ export class Ds5BridgeHidClient {
 
     const applied = await this.readShortcuts();
     if (!shortcutSlotsEqual(applied, shortcuts)) {
-      throw new ButtonProtocolError("shortcutVerificationFailed", {});
+      const modifierHoldMismatch = shortcuts.some((slot, index) =>
+        (slot.flags & SHORTCUT_FLAG_MODIFIER_HOLD) !== 0 &&
+        !shortcutSlotsEqual([slot], [applied[index]]));
+      throw new ButtonProtocolError(
+        modifierHoldMismatch ? "modifierHoldVerificationFailed" : "shortcutVerificationFailed", {},
+      );
     }
 
     await this.saveToFlash();

@@ -1,19 +1,21 @@
 import {
   BUTTON_SOURCE_COUNT, DPAD_MAX_ID, SHORTCUT_FLAG_DOUBLE_TAP, SHORTCUT_FLAG_HOLD,
+  SHORTCUT_FLAG_MODIFIER_HOLD,
   SHORTCUT_TRIGGER_DOUBLE_TAP, SHORTCUT_TRIGGER_TAP, type ShortcutSlot,
 } from "./buttons";
 
-export type TriggerGesture = "tap" | "doubleTap" | "chord" | "doubleChord" | "hold" | "holdChord";
+export type TriggerGesture = "tap" | "doubleTap" | "chord" | "doubleChord" | "hold" | "holdChord" | "modifierHold";
 
 export function isHoldGesture(gesture: TriggerGesture): boolean {
-  return gesture === "hold" || gesture === "holdChord";
+  return gesture === "hold" || gesture === "holdChord" || gesture === "modifierHold";
 }
 
 export function isChordGesture(gesture: TriggerGesture): boolean {
-  return gesture === "chord" || gesture === "doubleChord" || gesture === "holdChord";
+  return gesture === "chord" || gesture === "doubleChord" || gesture === "holdChord" || gesture === "modifierHold";
 }
 
 export function getGesture(slot: ShortcutSlot): TriggerGesture {
+  if (slot.flags & SHORTCUT_FLAG_MODIFIER_HOLD) return "modifierHold";
   if (slot.flags & SHORTCUT_FLAG_HOLD) {
     return slot.triggerB === SHORTCUT_TRIGGER_TAP ? "hold" : "holdChord";
   }
@@ -37,7 +39,8 @@ export function setGesture(slot: ShortcutSlot, gesture: TriggerGesture): Shortcu
     triggerA,
     triggerB: isChordGesture(gesture) ? validSecondTrigger(triggerA, slot.triggerB)
       : gesture === "doubleTap" ? SHORTCUT_TRIGGER_DOUBLE_TAP : SHORTCUT_TRIGGER_TAP,
-    flags: isHoldGesture(gesture) ? SHORTCUT_FLAG_HOLD
+    flags: gesture === "modifierHold" ? SHORTCUT_FLAG_MODIFIER_HOLD
+      : isHoldGesture(gesture) ? SHORTCUT_FLAG_HOLD
       : gesture === "doubleChord" ? SHORTCUT_FLAG_DOUBLE_TAP : 0,
   };
 }
@@ -45,6 +48,14 @@ export function setGesture(slot: ShortcutSlot, gesture: TriggerGesture): Shortcu
 export function captureTrigger(slot: ShortcutSlot, buttons: readonly number[]): ShortcutSlot {
   if (buttons.length === 0) return slot;
   const gesture = getGesture(slot);
+  if (gesture === "modifierHold") {
+    // Roles are ordered even though runtime activation accepts either order.
+    // Incomplete/invalid capture must not silently turn this into a single hold.
+    if (buttons.length !== 2 || !Number.isInteger(buttons[0]) ||
+      buttons[0] < 0 || buttons[0] >= BUTTON_SOURCE_COUNT ||
+      validSecondTrigger(buttons[0], buttons[1]) !== buttons[1]) return slot;
+    return setGesture({ ...slot, triggerA: buttons[0], triggerB: buttons[1] }, gesture);
+  }
   const chord = buttons.length > 1;
   const double = gesture === "doubleTap" || gesture === "doubleChord";
   const nextGesture = isHoldGesture(gesture) ? (chord ? "holdChord" : "hold")

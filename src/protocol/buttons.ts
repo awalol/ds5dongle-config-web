@@ -77,7 +77,9 @@ export const SHORTCUT_TRIGGER_TAP = 0xfd;
 export const SHORTCUT_TRIGGER_DOUBLE_TAP = 0xfe;
 export const SHORTCUT_FLAG_DOUBLE_TAP = 0x01;
 export const SHORTCUT_FLAG_HOLD = 0x02;
-export const SHORTCUT_FLAG_MASK = SHORTCUT_FLAG_DOUBLE_TAP | SHORTCUT_FLAG_HOLD;
+export const SHORTCUT_FLAG_MODIFIER_HOLD = 0x04;
+export const SHORTCUT_FLAG_MASK =
+  SHORTCUT_FLAG_DOUBLE_TAP | SHORTCUT_FLAG_HOLD | SHORTCUT_FLAG_MODIFIER_HOLD;
 export const SHORTCUT_KEY_USAGE_MAX = 0x73;
 export const SHORTCUT_CONSUMER_USAGE_MAX = 0x02ff;
 
@@ -214,6 +216,15 @@ export function isShortcutSlotValid(slot: ShortcutSlot): boolean {
     return false;
   }
 
+  if ((slot.flags & SHORTCUT_FLAG_MODIFIER_HOLD) !== 0 && (
+    slot.flags !== SHORTCUT_FLAG_MODIFIER_HOLD ||
+    slot.action !== SHORTCUT_ACTION_KEYBOARD ||
+    slot.triggerB >= BUTTON_SOURCE_COUNT ||
+    slot.payload[0] === 0 || slot.payload[1] < 0x04
+  )) {
+    return false;
+  }
+
   if ((slot.flags & SHORTCUT_FLAG_HOLD) !== 0 && (
     slot.action !== SHORTCUT_ACTION_KEYBOARD ||
     (slot.flags & SHORTCUT_FLAG_DOUBLE_TAP) !== 0 ||
@@ -278,7 +289,8 @@ export class ButtonProtocolError extends Error {
       | "invalidShortcut"
       | "invalidShortcutLength"
       | "remapVerificationFailed"
-      | "shortcutVerificationFailed",
+      | "shortcutVerificationFailed"
+      | "modifierHoldVerificationFailed",
     public readonly values: Record<string, unknown>,
   ) {
     super(code);
