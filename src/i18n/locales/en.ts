@@ -116,7 +116,7 @@ export const en = {
     sections: {
       feedback: "Feedback output",
       feedbackDescription:
-        "Tune controller haptics, speaker level, headset level, speaker gain, trigger feedback, buffer size, and volume lock.",
+        "Tune controller haptics, speaker level, headset level, speaker gain, trigger feedback, and buffer size, and choose which volume changes to ignore.",
       power: "Power & indicators",
       powerDescription:
         "Control inactive disconnect, dock disconnect, the Pico LED, the controller microphone and speaker, and USB wake.",
@@ -145,7 +145,12 @@ export const en = {
     singlePacketHint:
       "Audio buffer length is below 32. Double packet mode may cause audio stutters — switch to single packet mode.",
     enableSinglePacket: "Enable single packet mode",
-    lockVolume: "Lock volume",
+    lockVolume: "Ignore volume changes",
+    lockVolumeOptions: {
+      off: "Off",
+      gameSoftware: "Game / software",
+      uac: "UAC (system volume)",
+    },
     controllerMode: "Controller mode",
     enableUsbSn: "Enable USB serial number",
     enableKeyboard: "Enable keyboard interface",
@@ -187,7 +192,8 @@ export const en = {
         "0: Auto mode. Higher values reduce adaptive trigger feedback more.\nCurrent testing shows the reduction mainly affects automatic rifle triggers; other effects are less noticeable.",
       audioBufferLength:
         "Lower values reduce latency, but may cause occasional audio stutters. Higher values are more stable. Used for: HD rumble, speaker, and headphone jack.",
-      lockVolume: "Ignore volume settings from games or software.",
+      lockVolume:
+        "Off: allow all volume and mute changes.\nGame / software: ignore HID volume and mute changes; system volume still works.\nUAC (system volume): ignore USB Audio volume and mute changes; game/software HID controls still work.",
       inactiveTime: "Idle auto-disconnect\n0 disables it.",
       disconnectOnDock:
         "Drop the Bluetooth link when the controller is placed on a charger or dock.",

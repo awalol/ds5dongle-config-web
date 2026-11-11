@@ -806,7 +806,9 @@ h2 {
 .status-gpio-pin-select-wrapper,
 .status-gpio-pin-select,
 .status-gpio-mode-select-wrapper,
-.status-gpio-mode-select {
+.status-gpio-mode-select,
+.lock-volume-select-wrapper,
+.lock-volume-select {
   width: 196px;
 }
 

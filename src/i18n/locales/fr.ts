@@ -117,7 +117,7 @@ export const fr = {
     sections: {
       feedback: "Retour et sortie",
       feedbackDescription:
-        "Ajuster les vibrations, le niveau du haut-parleur, le niveau du casque, le gain du haut-parleur, les gâchettes, le tampon audio et le verrouillage du volume.",
+        "Ajuster les vibrations, le niveau du haut-parleur, le niveau du casque, le gain du haut-parleur, les gâchettes et le tampon audio, et choisir les changements de volume à ignorer.",
       power: "Alimentation et voyants",
       powerDescription:
         "Contrôler la déconnexion après inactivité, la déconnexion sur dock, la LED Pico, le micro et le haut-parleur de la manette, ainsi que le réveil USB.",
@@ -146,7 +146,12 @@ export const fr = {
     singlePacketHint:
       "La longueur du tampon audio est inférieure à 32. Le mode double paquet peut provoquer des coupures audio — activez le mode paquet unique.",
     enableSinglePacket: "Activer le mode paquet unique",
-    lockVolume: "Verrouiller le volume",
+    lockVolume: "Ignorer les changements de volume",
+    lockVolumeOptions: {
+      off: "Désactivé",
+      gameSoftware: "Jeux / logiciels",
+      uac: "UAC (volume système)",
+    },
     controllerMode: "Mode de manette",
     enableUsbSn: "Activer le numéro de série USB",
     enableKeyboard: "Activer l'interface clavier",
@@ -189,7 +194,8 @@ export const fr = {
         "0 : mode automatique. Les valeurs plus élevées réduisent davantage le retour des gâchettes adaptatives.\nLes tests actuels montrent que la réduction affecte surtout les gâchettes des fusils automatiques ; les autres effets sont moins visibles.",
       audioBufferLength:
         "Les valeurs plus basses réduisent la latence, mais peuvent provoquer des coupures audio occasionnelles. Les valeurs plus hautes sont plus stables. Utilisé pour : vibration HD, haut-parleur et prise casque.",
-      lockVolume: "Ignorer les réglages de volume provenant des jeux ou des logiciels.",
+      lockVolume:
+        "Désactivé : autoriser tous les changements de volume et de sourdine.\nJeux / logiciels : ignorer les commandes HID de volume et de sourdine ; le volume système reste réglable.\nUAC (volume système) : ignorer les commandes USB Audio de volume et de sourdine ; les commandes HID des jeux et logiciels restent actives.",
       inactiveTime: "Déconnexion automatique après inactivité\n0 la désactive.",
       disconnectOnDock:
         "Coupe la liaison Bluetooth lorsque la manette est posée sur un chargeur ou un dock.",

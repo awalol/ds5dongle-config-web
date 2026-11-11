@@ -7,6 +7,7 @@ export type ControllerMode = 0 | 1 | 2;
 export type AudioDeviceSelect = 0 | 1 | 2 | 3;
 export type StatusGpioMode = 0 | 1;
 export type PacketMode = 0 | 1;
+export type LockVolumeMode = 0 | 1 | 2;
 
 export const STATUS_GPIO_DISABLED = 0xff;
 
@@ -39,7 +40,7 @@ export interface ConfigBody {
   speakerSelect: AudioDeviceSelect;
   enableWake: boolean;
   triggerReduce: number;
-  lockVolume: boolean;
+  lockVolume: LockVolumeMode;
   statusGpioPin: number;
   statusGpioMode: StatusGpioMode;
   packetMode: PacketMode;
@@ -66,7 +67,7 @@ export const DEFAULT_CONFIG: ConfigBody = {
   speakerSelect: 0,
   enableWake: false,
   triggerReduce: 0,
-  lockVolume: false,
+  lockVolume: 0,
   statusGpioPin: STATUS_GPIO_DISABLED,
   statusGpioMode: 0,
   packetMode: 0,
@@ -158,7 +159,7 @@ export function encodeConfigBody(config: ConfigBody): Uint8Array<ArrayBuffer> {
   view.setUint8(16, config.speakerSelect);
   view.setUint8(17, config.enableWake ? 1 : 0);
   view.setUint8(18, config.triggerReduce);
-  view.setUint8(19, config.lockVolume ? 1 : 0);
+  view.setUint8(19, config.lockVolume);
   view.setUint8(20, config.statusGpioPin);
   view.setUint8(21, config.statusGpioMode);
   view.setUint8(22, config.packetMode);
@@ -217,6 +218,10 @@ export function validateConfig(config: ConfigBody): ConfigValidationIssue[] {
     issues.push({ field: "triggerReduce" });
   }
 
+  if (!Number.isInteger(config.lockVolume) || config.lockVolume < 0 || config.lockVolume > 2) {
+    issues.push({ field: "lockVolume" });
+  }
+
   if (!isStatusGpioPinAvailable(config.statusGpioPin)) {
     issues.push({ field: "statusGpioPin" });
   }
@@ -249,7 +254,7 @@ export function normalizeConfig(config: ConfigBody): ConfigBody {
     speakerSelect: clampInteger(config.speakerSelect, 0, 3) as AudioDeviceSelect,
     enableWake: Boolean(config.enableWake),
     triggerReduce: clampInteger(config.triggerReduce, 0, 10),
-    lockVolume: Boolean(config.lockVolume),
+    lockVolume: clampInteger(config.lockVolume, 0, 2) as LockVolumeMode,
     statusGpioPin: isStatusGpioPinAvailable(config.statusGpioPin)
       ? config.statusGpioPin
       : STATUS_GPIO_DISABLED,
@@ -344,7 +349,7 @@ function decodeAt(bytes: Uint8Array, offset: number): DecodedConfigCandidate | n
       speakerSelect: view.getUint8(16) as AudioDeviceSelect,
       enableWake: view.getUint8(17) === 1,
       triggerReduce: view.getUint8(18),
-      lockVolume: view.getUint8(19) === 1,
+      lockVolume: view.getUint8(19) as LockVolumeMode,
       statusGpioPin: view.getUint8(20),
       statusGpioMode: view.getUint8(21) as StatusGpioMode,
       packetMode: view.getUint8(22) as PacketMode,

@@ -7,6 +7,7 @@ import { AudioDeviceSelectControl } from "./config/AudioDeviceSelectControl";
 import { ControllerModeControl } from "./config/ControllerModeControl";
 import { FloatControl } from "./config/FloatControl";
 import { IntegerControl } from "./config/IntegerControl";
+import { LockVolumeControl } from "./config/LockVolumeControl";
 import { PollingRateControl } from "./config/PollingRateControl";
 import { StatusGpioModeControl } from "./config/StatusGpioModeControl";
 import { StatusGpioPinControl } from "./config/StatusGpioPinControl";
@@ -118,7 +119,7 @@ export function ConfigPanel({ bridge }: ConfigPanelProps) {
                   </button>
                 </div>
               )}
-              <ToggleControl
+              <LockVolumeControl
                 label={t("config.lockVolume")}
                 value={bridge.draft.lockVolume}
                 helpContent={t("config.help.lockVolume")}

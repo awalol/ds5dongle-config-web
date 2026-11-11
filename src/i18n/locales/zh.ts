@@ -115,7 +115,7 @@ export const zh = {
     title: "配置",
     sections: {
       feedback: "反馈输出",
-      feedbackDescription: "调整手柄触觉、扬声器、耳机、扬声器增益、扳机反馈、音频缓冲与音量锁定。",
+      feedbackDescription: "调整手柄触觉、扬声器、耳机、扬声器增益、扳机反馈、音频缓冲，并选择要忽略的音量调节来源。",
       power: "电源与指示",
       powerDescription: "控制闲置断连、底座断连、Pico LED、手柄麦克风/扬声器以及 USB 唤醒。",
       performance: "性能",
@@ -142,7 +142,12 @@ export const zh = {
     audioBufferLength: "音频缓冲长度",
     singlePacketHint: "音频缓冲长度低于 32，双包模式可能导致声音卡顿，建议开启单包模式。",
     enableSinglePacket: "开启单包模式",
-    lockVolume: "锁定音量",
+    lockVolume: "忽略音量调节",
+    lockVolumeOptions: {
+      off: "关闭",
+      gameSoftware: "游戏 / 软件",
+      uac: "UAC（系统音量）",
+    },
     controllerMode: "控制器模式",
     enableUsbSn: "启用 USB 序列号",
     enableKeyboard: "启用键盘接口",
@@ -181,7 +186,8 @@ export const zh = {
       speakerGain: "能够让你的扬声器声音更大声\n0: 为自动模式，部分游戏会自动设置这个值。",
       triggerReduce: "0: 为自动模式。数值越大，自适应扳机反馈削减越多。\n目前测试好像只有在自动步枪扳机有削弱效果，其他的效果体现不大",
       audioBufferLength: "越小延迟越低，但是可能会导致声音偶尔卡顿。越大越稳定。用于：HD 震动、扬声器、耳机孔",
-      lockVolume: "忽略来自游戏或软件的音量设置。",
+      lockVolume:
+        "关闭：允许所有音量和静音修改。\n游戏 / 软件：忽略 HID 音量和静音修改，系统音量调节仍然生效。\nUAC（系统音量）：忽略 USB Audio 音量和静音修改，游戏/软件的 HID 控制仍然生效。",
       inactiveTime: "静默自动断开\n0 为关闭",
       disconnectOnDock: "手柄放在充电底座上时断开蓝牙连接。",
       disablePicoLed: "关闭常亮的 PICO LED 灯。但是手柄低电量时仍会闪烁",
