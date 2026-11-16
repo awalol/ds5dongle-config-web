@@ -136,6 +136,7 @@ export const fr = {
     inactiveTime: "Temps d'inactivité",
     inactiveTimeUnit: "Unité : minutes",
     disconnectOnDock: "Déconnexion sur dock",
+    sleepOnDock: "Mettre le PC en veille sur dock",
     disablePicoLed: "Désactiver la LED Pico",
     micSelect: "Microphone",
     speakerSelect: "Haut-parleur / casque",
@@ -199,6 +200,8 @@ export const fr = {
       inactiveTime: "Déconnexion automatique après inactivité\n0 la désactive.",
       disconnectOnDock:
         "Coupe la liaison Bluetooth lorsque la manette est posée sur un chargeur ou un dock.",
+      sleepOnDock:
+        "Met le PC hôte en veille lorsque la manette est posée sur un chargeur ou un dock.",
       disablePicoLed: "Éteint la LED PICO toujours allumée. Elle clignotera toujours quand la batterie de la manette est faible.",
       micSelect: "0 : Auto\n1 : Intégré\n2 : Casque\n3 : Désactivé",
       speakerSelect: "0 : Auto\n1 : Intégré\n2 : Casque\n3 : Désactivé",

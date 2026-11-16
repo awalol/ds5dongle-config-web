@@ -1,5 +1,6 @@
 export const CONFIG_BODY_VERSION = 5;
-export const CONFIG_BODY_SIZE = 24;
+export const CONFIG_BODY_SIZE = 25;
+const MIN_CONFIG_BODY_SIZE = 24;
 export const FEATURE_REPORT_PAYLOAD_SIZE = 63;
 
 export type PollingRateMode = 0 | 1 | 2 | 3;
@@ -45,6 +46,7 @@ export interface ConfigBody {
   statusGpioMode: StatusGpioMode;
   packetMode: PacketMode;
   disconnectOnDock: boolean;
+  sleepOnDock: boolean;
 }
 
 export interface ConfigValidationIssue {
@@ -72,6 +74,7 @@ export const DEFAULT_CONFIG: ConfigBody = {
   statusGpioMode: 0,
   packetMode: 0,
   disconnectOnDock: false,
+  sleepOnDock: false,
 };
 
 export const POLLING_RATE_OPTIONS: Array<{
@@ -103,7 +106,7 @@ export const AUDIO_DEVICE_SELECT_OPTIONS: Array<{
 
 export function decodeConfigBody(source: ArrayBuffer | DataView | Uint8Array): ConfigBody {
   const bytes = toUint8Array(source);
-  const candidates = bytes.byteLength >= CONFIG_BODY_SIZE + 1 ? [0, 1] : [0];
+  const candidates = bytes.byteLength >= MIN_CONFIG_BODY_SIZE + 1 ? [0, 1] : [0];
   const parsed = candidates
     .map((offset) => decodeAt(bytes, offset))
     .filter((candidate): candidate is DecodedConfigCandidate => Boolean(candidate));
@@ -164,6 +167,7 @@ export function encodeConfigBody(config: ConfigBody): Uint8Array<ArrayBuffer> {
   view.setUint8(21, config.statusGpioMode);
   view.setUint8(22, config.packetMode);
   view.setUint8(23, config.disconnectOnDock ? 1 : 0);
+  view.setUint8(24, config.sleepOnDock ? 1 : 0);
   return bytes;
 }
 
@@ -261,6 +265,7 @@ export function normalizeConfig(config: ConfigBody): ConfigBody {
     statusGpioMode: clampInteger(config.statusGpioMode, 0, 1) as StatusGpioMode,
     packetMode: clampInteger(config.packetMode, 0, 1) as PacketMode,
     disconnectOnDock: Boolean(config.disconnectOnDock),
+    sleepOnDock: Boolean(config.sleepOnDock),
   };
 }
 
@@ -299,7 +304,8 @@ export function configsEqual(left: ConfigBody | null, right: ConfigBody | null):
     left.statusGpioPin === right.statusGpioPin &&
     left.statusGpioMode === right.statusGpioMode &&
     left.packetMode === right.packetMode &&
-    left.disconnectOnDock === right.disconnectOnDock
+    left.disconnectOnDock === right.disconnectOnDock &&
+    left.sleepOnDock === right.sleepOnDock
   );
 }
 
@@ -326,11 +332,12 @@ interface DecodedConfigCandidate {
 }
 
 function decodeAt(bytes: Uint8Array, offset: number): DecodedConfigCandidate | null {
-  if (bytes.byteLength - offset < CONFIG_BODY_SIZE) {
+  const available = bytes.byteLength - offset;
+  if (available < MIN_CONFIG_BODY_SIZE) {
     return null;
   }
 
-  const view = new DataView(bytes.buffer, bytes.byteOffset + offset, CONFIG_BODY_SIZE);
+  const view = new DataView(bytes.buffer, bytes.byteOffset + offset, available);
   return {
     version: view.getUint8(0),
     config: {
@@ -354,6 +361,7 @@ function decodeAt(bytes: Uint8Array, offset: number): DecodedConfigCandidate | n
       statusGpioMode: view.getUint8(21) as StatusGpioMode,
       packetMode: view.getUint8(22) as PacketMode,
       disconnectOnDock: view.getUint8(23) === 1,
+      sleepOnDock: available >= CONFIG_BODY_SIZE ? view.getUint8(24) === 1 : false,
     },
   };
 }
