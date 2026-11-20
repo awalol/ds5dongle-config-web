@@ -135,6 +135,7 @@ export const en = {
     inactiveTime: "Inactive time",
     inactiveTimeUnit: "Unit: minutes",
     disconnectOnDock: "Disconnect on dock",
+    sleepOnDock: "Suspend host PC on dock",
     disablePicoLed: "Disable Pico LED",
     micSelect: "Microphone",
     speakerSelect: "Speaker / headset",
@@ -197,6 +198,8 @@ export const en = {
       inactiveTime: "Idle auto-disconnect\n0 disables it.",
       disconnectOnDock:
         "Drop the Bluetooth link when the controller is placed on a charger or dock.",
+      sleepOnDock:
+        "Send a USB System Sleep command to suspend the host PC when the controller is placed on a charger or dock.",
       disablePicoLed: "Turns off the always-on PICO LED. It will still blink when the controller battery is low.",
       micSelect: "0: Auto\n1: Built-in\n2: Headphone\n3: Disabled",
       speakerSelect: "0: Auto\n1: Built-in\n2: Headphone\n3: Disabled",

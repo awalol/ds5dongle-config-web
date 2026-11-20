@@ -53,8 +53,9 @@ test("offers 250, 500, 1000 Hz and real-time polling modes", async () => {
 });
 
 test("renders the new dock and packet toggles", async () => {
-  const { html, t } = await renderConfigPanel("en", { packetMode: 1, disconnectOnDock: true });
+  const { html, t } = await renderConfigPanel("en", { packetMode: 1, disconnectOnDock: true, sleepOnDock: true });
 
   expect(html).toContain(t("config.packetMode"));
   expect(html).toContain(t("config.disconnectOnDock"));
+  expect(html).toContain(t("config.sleepOnDock"));
 });

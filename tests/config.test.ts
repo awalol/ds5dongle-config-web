@@ -19,23 +19,35 @@ const customized: ConfigBody = {
   pollingRateMode: 3,
   packetMode: 1,
   disconnectOnDock: true,
+  sleepOnDock: true,
 };
 
 describe("config body wire layout", () => {
-  test("keeps version 5 and extends the body to 24 bytes", () => {
+  test("keeps version 5 and extends the body to 25 bytes", () => {
     const bytes = encodeConfigBody(customized);
 
     expect(CONFIG_BODY_VERSION).toBe(5);
-    expect(CONFIG_BODY_SIZE).toBe(24);
-    expect(bytes.length).toBe(24);
+    expect(CONFIG_BODY_SIZE).toBe(25);
+    expect(bytes.length).toBe(25);
     expect(bytes[0]).toBe(5);
     expect(bytes[22]).toBe(1); // packet_mode
     expect(bytes[23]).toBe(1); // disconnect_on_dock
+    expect(bytes[24]).toBe(1); // sleep_on_dock
   });
 
   test("round-trips the new packet fields, with and without a report id prefix", () => {
     expect(decodeConfigBody(encodeConfigBody(customized))).toEqual(customized);
     expect(decodeConfigBody(new Uint8Array([0xf7, ...encodeConfigBody(customized)]))).toEqual(customized);
+  });
+
+  test("decodes legacy 24-byte config bodies with sleepOnDock defaulting to false", () => {
+    const legacy = encodeConfigBody(customized).slice(0, 24);
+
+    expect(decodeConfigBody(legacy)).toEqual({ ...customized, sleepOnDock: false });
+    expect(decodeConfigBody(new Uint8Array([0xf7, ...legacy]))).toEqual({
+      ...customized,
+      sleepOnDock: false,
+    });
   });
 
   test("accepts both the 1000 Hz and the real-time polling modes", () => {
@@ -75,6 +87,7 @@ describe("config body wire layout", () => {
     expect(configsEqual(DEFAULT_CONFIG, { ...DEFAULT_CONFIG })).toBe(true);
     expect(configsEqual(DEFAULT_CONFIG, { ...DEFAULT_CONFIG, packetMode: 1 })).toBe(false);
     expect(configsEqual(DEFAULT_CONFIG, { ...DEFAULT_CONFIG, disconnectOnDock: true })).toBe(false);
+    expect(configsEqual(DEFAULT_CONFIG, { ...DEFAULT_CONFIG, sleepOnDock: true })).toBe(false);
   });
 });
 

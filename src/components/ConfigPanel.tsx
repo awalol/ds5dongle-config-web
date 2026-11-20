@@ -216,6 +216,13 @@ export function ConfigPanel({ bridge }: ConfigPanelProps) {
                 onChange={(value) => bridge.setDraftField("disconnectOnDock", value)}
               />
               <ToggleControl
+                label={t("config.sleepOnDock")}
+                value={bridge.draft.sleepOnDock}
+                helpContent={t("config.help.sleepOnDock")}
+                disabled={controlsDisabled}
+                onChange={(value) => bridge.setDraftField("sleepOnDock", value)}
+              />
+              <ToggleControl
                 label={t("config.disablePicoLed")}
                 value={bridge.draft.disablePicoLed}
                 helpContent={t("config.help.disablePicoLed")}
