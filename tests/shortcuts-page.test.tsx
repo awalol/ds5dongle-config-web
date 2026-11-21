@@ -91,3 +91,28 @@ for (const language of ["en", "zh", "fr", "ru"]) {
     expect(html).not.toContain(i18n.t("shortcuts.modifierHoldTriggerA"));
   });
 }
+
+for (const language of ["en", "zh", "fr", "ru"]) {
+  test(`${language}: stick directions are listed and summarised as triggers`, async () => {
+    const i18n = createInstance();
+    await i18n.init({ resources, lng: language, fallbackLng: false });
+    const shortcuts = createDefaultShortcutSlots();
+    // PS / Home + Left stick up -> Volume Up
+    shortcuts[0] = { triggerA: 20, triggerB: 28, action: 2, payload: [0xe9, 0, 0], flags: 0 };
+    const bridge = {
+      shortcuts, operation: null, draft: { enableKeyboard: true, enableWake: false },
+      isConnected: true, areShortcutsDirty: true, client: {},
+    } as UseDs5BridgeResult;
+    const html = renderToStaticMarkup(
+      <I18nextProvider i18n={i18n}><ShortcutsPage bridge={bridge} /></I18nextProvider>,
+    );
+    expect(html).toContain(`${i18n.t("buttons.home")} + ${i18n.t("buttons.leftStickUp")}`);
+    expect(html).toContain(`<optgroup label="${i18n.t("shortcuts.triggerGroupSticks")}">`);
+    expect(html).toMatch(/<option value="28" selected="">/);
+    for (const key of ["leftStickUp", "rightStickRight"]) {
+      expect(html).not.toContain(`buttons.${key}`);
+    }
+    // With Home as the first trigger, every stick direction is a valid second one.
+    expect(html).toContain('<option value="29">');
+  });
+}

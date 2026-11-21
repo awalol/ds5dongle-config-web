@@ -69,6 +69,66 @@ export const BUTTON_DISABLE_ID = BUTTON_REMAP_COUNT - 1;
 export const DUALSENSE_BUTTON_SOURCE_COUNT = 23;
 export const DPAD_MAX_ID = 7;
 
+/**
+ * Shortcut-only virtual triggers: analog stick directions count as buttons once
+ * pushed past a threshold (DS5Dongle/src/button_shortcut.h ShortcutStickTrigger).
+ * They sit above the remap range (Disable = 27), so remaps never see them.
+ */
+export const STICK_TRIGGER_FIRST = 28;
+export const STICK_TRIGGER_TRANSLATION_KEYS = [
+  "leftStickUp",
+  "leftStickDown",
+  "leftStickLeft",
+  "leftStickRight",
+  "rightStickUp",
+  "rightStickDown",
+  "rightStickLeft",
+  "rightStickRight",
+] as const;
+export const STICK_TRIGGER_LAST = STICK_TRIGGER_FIRST + STICK_TRIGGER_TRANSLATION_KEYS.length - 1;
+/** Firmware press threshold: deflection from centre (128) on one axis, 0..127. */
+export const STICK_TRIGGER_PRESS = 80;
+
+export function isStickTrigger(trigger: number): boolean {
+  return Number.isInteger(trigger) && trigger >= STICK_TRIGGER_FIRST && trigger <= STICK_TRIGGER_LAST;
+}
+
+/** Every id a shortcut slot can use as a trigger: buttons, then stick directions. */
+export const SHORTCUT_TRIGGER_IDS: readonly number[] = Object.freeze([
+  ...Array.from({ length: BUTTON_SOURCE_COUNT }, (_, index) => index),
+  ...STICK_TRIGGER_TRANSLATION_KEYS.map((_, index) => STICK_TRIGGER_FIRST + index),
+]);
+
+export function isShortcutTriggerId(trigger: number): boolean {
+  return (Number.isInteger(trigger) && trigger >= 0 && trigger < BUTTON_SOURCE_COUNT) || isStickTrigger(trigger);
+}
+
+/** Translation key (under `buttons.`) for a shortcut trigger id. */
+export function shortcutTriggerTranslationKey(trigger: number): string {
+  if (isStickTrigger(trigger)) {
+    return STICK_TRIGGER_TRANSLATION_KEYS[trigger - STICK_TRIGGER_FIRST];
+  }
+  return BUTTON_TRANSLATION_KEYS[trigger] ?? BUTTON_TRANSLATION_KEYS[0];
+}
+
+/**
+ * Whether two triggers can be held together as a chord: different ids, not two
+ * D-pad directions (the pad reports one at a time) and not opposite directions
+ * of the same stick.
+ */
+export function canChordTriggers(first: number, second: number): boolean {
+  if (!isShortcutTriggerId(first) || !isShortcutTriggerId(second) || first === second) {
+    return false;
+  }
+  if (first <= DPAD_MAX_ID && second <= DPAD_MAX_ID) {
+    return false;
+  }
+  if (isStickTrigger(first) && isStickTrigger(second)) {
+    return ((first - STICK_TRIGGER_FIRST) ^ (second - STICK_TRIGGER_FIRST)) !== 1;
+  }
+  return true;
+}
+
 export const SHORTCUT_COUNT = 9;
 export const SHORTCUT_SIZE = 7;
 export const SHORTCUT_STORAGE_SIZE = SHORTCUT_COUNT * SHORTCUT_SIZE;
@@ -209,7 +269,7 @@ export function isShortcutDisabled(slot: ShortcutSlot): boolean {
 }
 
 export function isShortcutSlotValid(slot: ShortcutSlot): boolean {
-  if (!Number.isInteger(slot.triggerA) || slot.triggerA < 0 || slot.triggerA >= BUTTON_SOURCE_COUNT) {
+  if (!isShortcutTriggerId(slot.triggerA)) {
     return false;
   }
   if (!Number.isInteger(slot.flags) || (slot.flags & ~SHORTCUT_FLAG_MASK) !== 0) {
@@ -219,7 +279,7 @@ export function isShortcutSlotValid(slot: ShortcutSlot): boolean {
   if ((slot.flags & SHORTCUT_FLAG_MODIFIER_HOLD) !== 0 && (
     slot.flags !== SHORTCUT_FLAG_MODIFIER_HOLD ||
     slot.action !== SHORTCUT_ACTION_KEYBOARD ||
-    slot.triggerB >= BUTTON_SOURCE_COUNT ||
+    !isShortcutTriggerId(slot.triggerB) ||
     slot.payload[0] === 0 || slot.payload[1] < 0x04
   )) {
     return false;
@@ -237,13 +297,7 @@ export function isShortcutSlotValid(slot: ShortcutSlot): boolean {
     if ((slot.flags & SHORTCUT_FLAG_DOUBLE_TAP) !== 0) {
       return false;
     }
-  } else if (
-    !Number.isInteger(slot.triggerB) ||
-    slot.triggerB < 0 ||
-    slot.triggerB >= BUTTON_SOURCE_COUNT ||
-    slot.triggerA === slot.triggerB ||
-    (slot.triggerA <= DPAD_MAX_ID && slot.triggerB <= DPAD_MAX_ID)
-  ) {
+  } else if (!canChordTriggers(slot.triggerA, slot.triggerB)) {
     return false;
   }
 

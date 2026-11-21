@@ -18,9 +18,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import type { UseDs5BridgeResult } from "@/hooks/useDs5Bridge";
 import {
-  BUTTON_SOURCE_COUNT,
-  BUTTON_TRANSLATION_KEYS,
-  DPAD_MAX_ID,
   SHORTCUT_ACTION_BT_DISCONNECT,
   SHORTCUT_ACTION_CONSUMER,
   SHORTCUT_ACTION_KEYBOARD,
@@ -30,8 +27,12 @@ import {
   SHORTCUT_FLAG_MODIFIER_HOLD,
   SHORTCUT_TRIGGER_DOUBLE_TAP,
   SHORTCUT_TRIGGER_TAP,
+  SHORTCUT_TRIGGER_IDS,
   ShortcutSlot,
+  canChordTriggers,
   createDisabledShortcut,
+  isStickTrigger,
+  shortcutTriggerTranslationKey,
   isShortcutDisabled,
   isShortcutSlotValid,
 } from "@/protocol/buttons";
@@ -101,8 +102,26 @@ export function ShortcutsPage({ bridge }: ShortcutsPageProps) {
     [selectedConsumerUsage],
   );
 
-  const buttonLabel = (button: number) =>
-    t(`buttons.${BUTTON_TRANSLATION_KEYS[button] ?? BUTTON_TRANSLATION_KEYS[0]}`);
+  const buttonLabel = (button: number) => t(`buttons.${shortcutTriggerTranslationKey(button)}`);
+
+  // Buttons and analog stick directions, grouped so the stick entries are easy to find.
+  const triggerOptions = (triggers: readonly number[]) => {
+    const groups = [
+      { label: t("shortcuts.triggerGroupButtons"), items: triggers.filter((id) => !isStickTrigger(id)) },
+      { label: t("shortcuts.triggerGroupSticks"), items: triggers.filter(isStickTrigger) },
+    ];
+    return groups
+      .filter((group) => group.items.length > 0)
+      .map((group) => (
+        <optgroup key={group.label} label={group.label}>
+          {group.items.map((button) => (
+            <option key={button} value={button}>
+              {buttonLabel(button)}
+            </option>
+          ))}
+        </optgroup>
+      ));
+  };
 
   const triggerSummary = (shortcut: ShortcutSlot) => {
     if (isShortcutDisabled(shortcut)) {
@@ -487,11 +506,7 @@ export function ShortcutsPage({ bridge }: ShortcutsPageProps) {
                         disabled={!bridge.isConnected || isBusy}
                         onChange={(event) => updateTriggerA(Number(event.target.value))}
                       >
-                        {Array.from({ length: BUTTON_SOURCE_COUNT }, (_, button) => (
-                          <option key={button} value={button}>
-                            {buttonLabel(button)}
-                          </option>
-                        ))}
+                        {triggerOptions(SHORTCUT_TRIGGER_IDS)}
                       </select>
                     </span>
                   </label>
@@ -508,17 +523,9 @@ export function ShortcutsPage({ bridge }: ShortcutsPageProps) {
                             updateSelectedSlot({ ...selectedSlot, triggerB: Number(event.target.value) })
                           }
                         >
-                          {Array.from({ length: BUTTON_SOURCE_COUNT }, (_, button) => button)
-                            .filter(
-                              (button) =>
-                                button !== selectedSlot.triggerA &&
-                                !(button <= DPAD_MAX_ID && selectedSlot.triggerA <= DPAD_MAX_ID),
-                            )
-                            .map((button) => (
-                              <option key={button} value={button}>
-                                {buttonLabel(button)}
-                              </option>
-                            ))}
+                          {triggerOptions(
+                            SHORTCUT_TRIGGER_IDS.filter((button) => canChordTriggers(selectedSlot.triggerA, button)),
+                          )}
                         </select>
                       </span>
                     </label>
@@ -663,6 +670,6 @@ function canExtendCapture(captured: readonly number[], button: number): boolean 
   return (
     captured.length < MAX_TRIGGER_BUTTONS &&
     !captured.includes(button) &&
-    !(captured.length > 0 && captured[0] <= DPAD_MAX_ID && button <= DPAD_MAX_ID)
+    (captured.length === 0 || canChordTriggers(captured[0], button))
   );
 }

@@ -1,4 +1,4 @@
-import { BUTTON_REMAP_COUNT, DPAD_MAX_ID } from "./buttons";
+import { BUTTON_REMAP_COUNT, DPAD_MAX_ID, STICK_TRIGGER_FIRST, STICK_TRIGGER_PRESS } from "./buttons";
 
 // Button state lives in bytes 7-9 of USBGetStateData (DS5Dongle/src/utils.h).
 const BUTTON_BYTE_DPAD_FACE = 7;
@@ -41,6 +41,7 @@ export function decodePressedButtons(reportId: number, data: DataView): number[]
   collectBits(pressed, dpadFace >> 4, FACE_BUTTON_IDS);
   collectBits(pressed, data.getUint8(BUTTON_BYTE_SHOULDER), SHOULDER_BUTTON_IDS);
   collectBits(pressed, data.getUint8(BUTTON_BYTE_SYSTEM), SYSTEM_BUTTON_IDS);
+  collectStickDirections(pressed, data);
 
   return pressed;
 }
@@ -53,7 +54,8 @@ export function decodePressedButtons(reportId: number, data: DataView): number[]
  * before a captured button can be used as a trigger.
  */
 export function resolvePhysicalButton(reported: number, remap: readonly number[]): number {
-  if (remap.length !== BUTTON_REMAP_COUNT || remap[reported] === reported) {
+  // Stick directions are never remapped.
+  if (reported >= BUTTON_REMAP_COUNT || remap.length !== BUTTON_REMAP_COUNT || remap[reported] === reported) {
     return reported;
   }
 
@@ -69,4 +71,19 @@ function collectBits(pressed: number[], bits: number, buttonIds: readonly (numbe
       pressed.push(button);
     }
   });
+}
+
+// Stick axes live in bytes 0-3 (LX, LY, RX, RY): 0 = left/up, 255 = right/down.
+// A direction counts as pressed past the firmware's press threshold, in
+// ShortcutStickTrigger order (Up, Down, Left, Right per stick).
+function collectStickDirections(pressed: number[], data: DataView) {
+  for (let stick = 0; stick < 2; stick++) {
+    const x = data.getUint8(stick * 2) - 128;
+    const y = data.getUint8(stick * 2 + 1) - 128;
+    [-y, y, -x, x].forEach((deflection, direction) => {
+      if (deflection >= STICK_TRIGGER_PRESS) {
+        pressed.push(STICK_TRIGGER_FIRST + stick * 4 + direction);
+      }
+    });
+  }
 }
