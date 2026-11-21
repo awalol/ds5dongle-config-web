@@ -126,6 +126,8 @@ export const en = {
       compatibilityDescription: "Switch the controller identification mode.",
       integration: "GPIO integration",
       integrationDescription: "Drive an external status LED or connection pulse from a board-safe GPIO.",
+      touchpadMouse: "Touchpad mouse",
+      touchpadMouseDescription: "Use the touchpad as a mouse to navigate the desktop. PS + touchpad click turns it on or off.",
     },
     hapticsGain: "Haptics gain",
     speakerVolume: "Speaker volume",
@@ -181,6 +183,16 @@ export const en = {
       connected: "High while connected",
       pulse: "200 ms connect pulse",
     },
+    touchpadMouse: "Touchpad mouse",
+    touchpadMouseOptions: {
+      off: "Off",
+      shared: "Mouse + gamepad",
+      exclusive: "Mouse only",
+    },
+    touchpadMouseSpeed: "Cursor speed",
+    touchpadMouseScrollSpeed: "Scroll speed",
+    touchpadMouseScrollInvert: "Traditional scroll direction",
+    touchpadMouseTap: "Tap to click",
     help: {
       open: "Show details",
       close: "Close",
@@ -212,6 +224,11 @@ export const en = {
       enableUsbSn: "TODO: Fill in the USB serial number description here.",
       enableKeyboard:
         "Expose the USB keyboard and consumer-control interfaces used by shortcut actions. Reconnect USB after changing this setting.",
+      touchpadMouse: "One finger moves the cursor, two fingers scroll, click or tap for left click (two fingers: right click). PS + touchpad click turns the mouse off and back on.\nMouse + gamepad: games still receive the touchpad.\nMouse only: while the mouse is on, games see an idle touchpad.\nReconnect USB after turning this on or off.",
+      touchpadMouseSpeed: "1–20. Default: 10. Faster finger movement is accelerated.",
+      touchpadMouseScrollSpeed: "1–20. Default: 10. Two-finger scroll speed.",
+      touchpadMouseScrollInvert: "Off: natural scrolling, content follows the fingers.\nOn: traditional scrolling, like a mouse wheel.",
+      touchpadMouseTap: "A quick touch clicks without pressing the touchpad. Two-finger tap: right click.",
       statusGpioPin:
         "Pico 2 W supports GPIO 2–22 and 26–28 here. GPIO 0/1 are reserved for UART; 23/24/25/29 are used by wireless hardware or VSYS. 255 disables the output.",
       statusGpioMode:

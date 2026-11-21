@@ -45,7 +45,7 @@ type Operation =
 type SaveState = "idle" | "dirty" | "applied" | "saved";
 type UsbEffectiveConfig = Pick<
   ConfigBody,
-  "pollingRateMode" | "controllerMode" | "enableUsbSn" | "enableKeyboard" | "enableWake"
+  "pollingRateMode" | "controllerMode" | "enableUsbSn" | "enableKeyboard" | "enableWake" | "touchpadMouse"
 >;
 
 const SIGNAL_STRENGTH_REFRESH_INTERVAL_MS = 5_000;
@@ -696,6 +696,7 @@ function pickUsbEffectiveConfig(config: ConfigBody): UsbEffectiveConfig {
     enableUsbSn: config.enableUsbSn,
     enableKeyboard: config.enableKeyboard,
     enableWake: config.enableWake,
+    touchpadMouse: config.touchpadMouse,
   };
 }
 
@@ -709,7 +710,9 @@ function usbEffectiveConfigChanged(current: UsbEffectiveConfig | null, next: Con
     current.controllerMode !== next.controllerMode ||
     current.enableUsbSn !== next.enableUsbSn ||
     current.enableKeyboard !== next.enableKeyboard ||
-    current.enableWake !== next.enableWake
+    current.enableWake !== next.enableWake ||
+    // Turning the mouse on or off changes the USB descriptors; switching mode does not.
+    (current.touchpadMouse !== 0) !== (next.touchpadMouse !== 0)
   );
 }
 

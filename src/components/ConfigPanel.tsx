@@ -1,8 +1,14 @@
-import { AlertTriangle, Cable, Gauge, Gamepad2, SlidersHorizontal, Volume2, Zap } from "lucide-react";
+import { AlertTriangle, Cable, Gauge, Gamepad2, MousePointer2, SlidersHorizontal, Volume2, Zap } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UseDs5BridgeResult } from "../hooks/useDs5Bridge";
-import { fieldIssue, shouldSuggestSinglePacket, STATUS_GPIO_DISABLED } from "../protocol/config";
+import {
+  fieldIssue,
+  shouldSuggestSinglePacket,
+  STATUS_GPIO_DISABLED,
+  TOUCHPAD_MOUSE_SPEED_MAX,
+  TOUCHPAD_MOUSE_SPEED_MIN,
+} from "../protocol/config";
 import { AudioDeviceSelectControl } from "./config/AudioDeviceSelectControl";
 import { ControllerModeControl } from "./config/ControllerModeControl";
 import { FloatControl } from "./config/FloatControl";
@@ -12,6 +18,7 @@ import { PollingRateControl } from "./config/PollingRateControl";
 import { StatusGpioModeControl } from "./config/StatusGpioModeControl";
 import { StatusGpioPinControl } from "./config/StatusGpioPinControl";
 import { ToggleControl } from "./config/ToggleControl";
+import { TouchpadMouseModeControl } from "./config/TouchpadMouseModeControl";
 
 interface ConfigPanelProps {
   bridge: UseDs5BridgeResult;
@@ -20,6 +27,7 @@ interface ConfigPanelProps {
 export function ConfigPanel({ bridge }: ConfigPanelProps) {
   const { t } = useTranslation();
   const controlsDisabled = !bridge.isConnected;
+  const touchpadMouseDisabled = controlsDisabled || bridge.draft.touchpadMouse === 0;
 
   return (
     <Card className="panel config-panel">
@@ -283,6 +291,61 @@ export function ConfigPanel({ bridge }: ConfigPanelProps) {
                 helpContent={t("config.help.enableKeyboard")}
                 disabled={controlsDisabled}
                 onChange={(value) => bridge.setDraftField("enableKeyboard", value)}
+              />
+            </div>
+          </section>
+
+          <section className="config-section">
+            <div className="config-section-heading">
+              <span className="config-section-icon">
+                <MousePointer2 size={17} />
+              </span>
+              <div>
+                <h3>{t("config.sections.touchpadMouse")}</h3>
+                <p>{t("config.sections.touchpadMouseDescription")}</p>
+              </div>
+            </div>
+            <div className="control-stack compact-stack">
+              <TouchpadMouseModeControl
+                label={t("config.touchpadMouse")}
+                value={bridge.draft.touchpadMouse}
+                helpContent={t("config.help.touchpadMouse")}
+                disabled={controlsDisabled}
+                onChange={(value) => bridge.setDraftField("touchpadMouse", value)}
+              />
+              <IntegerControl
+                label={t("config.touchpadMouseSpeed")}
+                value={bridge.draft.touchpadMouseSpeed}
+                min={TOUCHPAD_MOUSE_SPEED_MIN}
+                max={TOUCHPAD_MOUSE_SPEED_MAX}
+                helpContent={t("config.help.touchpadMouseSpeed")}
+                issue={fieldIssue(bridge.issues, "touchpadMouseSpeed")}
+                disabled={touchpadMouseDisabled}
+                onChange={(value) => bridge.setDraftField("touchpadMouseSpeed", value)}
+              />
+              <IntegerControl
+                label={t("config.touchpadMouseScrollSpeed")}
+                value={bridge.draft.touchpadMouseScrollSpeed}
+                min={TOUCHPAD_MOUSE_SPEED_MIN}
+                max={TOUCHPAD_MOUSE_SPEED_MAX}
+                helpContent={t("config.help.touchpadMouseScrollSpeed")}
+                issue={fieldIssue(bridge.issues, "touchpadMouseScrollSpeed")}
+                disabled={touchpadMouseDisabled}
+                onChange={(value) => bridge.setDraftField("touchpadMouseScrollSpeed", value)}
+              />
+              <ToggleControl
+                label={t("config.touchpadMouseScrollInvert")}
+                value={bridge.draft.touchpadMouseScrollInvert}
+                helpContent={t("config.help.touchpadMouseScrollInvert")}
+                disabled={touchpadMouseDisabled}
+                onChange={(value) => bridge.setDraftField("touchpadMouseScrollInvert", value)}
+              />
+              <ToggleControl
+                label={t("config.touchpadMouseTap")}
+                value={bridge.draft.touchpadMouseTap}
+                helpContent={t("config.help.touchpadMouseTap")}
+                disabled={touchpadMouseDisabled}
+                onChange={(value) => bridge.setDraftField("touchpadMouseTap", value)}
               />
             </div>
           </section>

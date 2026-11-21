@@ -1,5 +1,5 @@
 export const CONFIG_BODY_VERSION = 5;
-export const CONFIG_BODY_SIZE = 25;
+export const CONFIG_BODY_SIZE = 30;
 const MIN_CONFIG_BODY_SIZE = 24;
 export const FEATURE_REPORT_PAYLOAD_SIZE = 63;
 
@@ -9,6 +9,12 @@ export type AudioDeviceSelect = 0 | 1 | 2 | 3;
 export type StatusGpioMode = 0 | 1;
 export type PacketMode = 0 | 1;
 export type LockVolumeMode = 0 | 1 | 2;
+// 0: off, 1: mouse + gamepad, 2: mouse only (gamepad sees an idle touchpad).
+export type TouchpadMouseMode = 0 | 1 | 2;
+
+export const TOUCHPAD_MOUSE_SPEED_MIN = 1;
+export const TOUCHPAD_MOUSE_SPEED_MAX = 20;
+export const TOUCHPAD_MOUSE_SPEED_DEFAULT = 10;
 
 export const STATUS_GPIO_DISABLED = 0xff;
 
@@ -47,6 +53,11 @@ export interface ConfigBody {
   packetMode: PacketMode;
   disconnectOnDock: boolean;
   sleepOnDock: boolean;
+  touchpadMouse: TouchpadMouseMode;
+  touchpadMouseSpeed: number;
+  touchpadMouseScrollSpeed: number;
+  touchpadMouseScrollInvert: boolean;
+  touchpadMouseTap: boolean;
 }
 
 export interface ConfigValidationIssue {
@@ -75,6 +86,11 @@ export const DEFAULT_CONFIG: ConfigBody = {
   packetMode: 0,
   disconnectOnDock: false,
   sleepOnDock: false,
+  touchpadMouse: 0,
+  touchpadMouseSpeed: TOUCHPAD_MOUSE_SPEED_DEFAULT,
+  touchpadMouseScrollSpeed: TOUCHPAD_MOUSE_SPEED_DEFAULT,
+  touchpadMouseScrollInvert: false,
+  touchpadMouseTap: true,
 };
 
 export const POLLING_RATE_OPTIONS: Array<{
@@ -168,6 +184,11 @@ export function encodeConfigBody(config: ConfigBody): Uint8Array<ArrayBuffer> {
   view.setUint8(22, config.packetMode);
   view.setUint8(23, config.disconnectOnDock ? 1 : 0);
   view.setUint8(24, config.sleepOnDock ? 1 : 0);
+  view.setUint8(25, config.touchpadMouse);
+  view.setUint8(26, config.touchpadMouseSpeed);
+  view.setUint8(27, config.touchpadMouseScrollSpeed);
+  view.setUint8(28, config.touchpadMouseScrollInvert ? 1 : 0);
+  view.setUint8(29, config.touchpadMouseTap ? 0 : 1); // firmware stores tap_disable
   return bytes;
 }
 
@@ -238,6 +259,18 @@ export function validateConfig(config: ConfigBody): ConfigValidationIssue[] {
     issues.push({ field: "packetMode" });
   }
 
+  if (!Number.isInteger(config.touchpadMouse) || config.touchpadMouse < 0 || config.touchpadMouse > 2) {
+    issues.push({ field: "touchpadMouse" });
+  }
+
+  if (!isTouchpadMouseSpeed(config.touchpadMouseSpeed)) {
+    issues.push({ field: "touchpadMouseSpeed" });
+  }
+
+  if (!isTouchpadMouseSpeed(config.touchpadMouseScrollSpeed)) {
+    issues.push({ field: "touchpadMouseScrollSpeed" });
+  }
+
   return issues;
 }
 
@@ -266,7 +299,26 @@ export function normalizeConfig(config: ConfigBody): ConfigBody {
     packetMode: clampInteger(config.packetMode, 0, 1) as PacketMode,
     disconnectOnDock: Boolean(config.disconnectOnDock),
     sleepOnDock: Boolean(config.sleepOnDock),
+    touchpadMouse: clampInteger(config.touchpadMouse, 0, 2) as TouchpadMouseMode,
+    touchpadMouseSpeed: clampInteger(
+      config.touchpadMouseSpeed,
+      TOUCHPAD_MOUSE_SPEED_MIN,
+      TOUCHPAD_MOUSE_SPEED_MAX,
+    ),
+    touchpadMouseScrollSpeed: clampInteger(
+      config.touchpadMouseScrollSpeed,
+      TOUCHPAD_MOUSE_SPEED_MIN,
+      TOUCHPAD_MOUSE_SPEED_MAX,
+    ),
+    touchpadMouseScrollInvert: Boolean(config.touchpadMouseScrollInvert),
+    touchpadMouseTap: Boolean(config.touchpadMouseTap),
   };
+}
+
+function isTouchpadMouseSpeed(value: number): boolean {
+  return (
+    Number.isInteger(value) && value >= TOUCHPAD_MOUSE_SPEED_MIN && value <= TOUCHPAD_MOUSE_SPEED_MAX
+  );
 }
 
 export function shouldSuggestSinglePacket(
@@ -305,7 +357,12 @@ export function configsEqual(left: ConfigBody | null, right: ConfigBody | null):
     left.statusGpioMode === right.statusGpioMode &&
     left.packetMode === right.packetMode &&
     left.disconnectOnDock === right.disconnectOnDock &&
-    left.sleepOnDock === right.sleepOnDock
+    left.sleepOnDock === right.sleepOnDock &&
+    left.touchpadMouse === right.touchpadMouse &&
+    left.touchpadMouseSpeed === right.touchpadMouseSpeed &&
+    left.touchpadMouseScrollSpeed === right.touchpadMouseScrollSpeed &&
+    left.touchpadMouseScrollInvert === right.touchpadMouseScrollInvert &&
+    left.touchpadMouseTap === right.touchpadMouseTap
   );
 }
 
@@ -361,9 +418,21 @@ function decodeAt(bytes: Uint8Array, offset: number): DecodedConfigCandidate | n
       statusGpioMode: view.getUint8(21) as StatusGpioMode,
       packetMode: view.getUint8(22) as PacketMode,
       disconnectOnDock: view.getUint8(23) === 1,
-      sleepOnDock: available >= CONFIG_BODY_SIZE ? view.getUint8(24) === 1 : false,
+      sleepOnDock: available >= 25 ? view.getUint8(24) === 1 : false,
+      // Firmware without the touchpad mouse (or a short read) reports zeros
+      // here; zero means "default" for every touchpad field.
+      touchpadMouse: (available >= 26 && view.getUint8(25) <= 2 ? view.getUint8(25) : 0) as TouchpadMouseMode,
+      touchpadMouseSpeed: decodeTouchpadSpeed(view, 26, available),
+      touchpadMouseScrollSpeed: decodeTouchpadSpeed(view, 27, available),
+      touchpadMouseScrollInvert: available >= 29 ? view.getUint8(28) === 1 : false,
+      touchpadMouseTap: available >= 30 ? view.getUint8(29) !== 1 : true,
     },
   };
+}
+
+function decodeTouchpadSpeed(view: DataView, offset: number, available: number): number {
+  const value = available > offset ? view.getUint8(offset) : 0;
+  return isTouchpadMouseSpeed(value) ? value : TOUCHPAD_MOUSE_SPEED_DEFAULT;
 }
 
 function uniqueVersions(versions: number[]): number[] {
