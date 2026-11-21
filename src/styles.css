@@ -570,6 +570,15 @@ h2 {
   line-height: 1.25;
 }
 
+.touchpad-gestures {
+  margin: 2px 0 0;
+  padding: 0 0 0 18px;
+  color: var(--muted-foreground);
+  font-size: 0.76rem;
+  line-height: 1.5;
+  list-style: disc;
+}
+
 .config-inline-hint {
   display: flex;
   flex-wrap: wrap;

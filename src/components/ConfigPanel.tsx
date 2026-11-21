@@ -20,6 +20,8 @@ import { StatusGpioPinControl } from "./config/StatusGpioPinControl";
 import { ToggleControl } from "./config/ToggleControl";
 import { TouchpadMouseModeControl } from "./config/TouchpadMouseModeControl";
 
+const TOUCHPAD_GESTURES = ["move", "scroll", "leftClick", "rightClick", "drag", "toggle"] as const;
+
 interface ConfigPanelProps {
   bridge: UseDs5BridgeResult;
 }
@@ -347,6 +349,11 @@ export function ConfigPanel({ bridge }: ConfigPanelProps) {
                 disabled={touchpadMouseDisabled}
                 onChange={(value) => bridge.setDraftField("touchpadMouseTap", value)}
               />
+              <ul className="touchpad-gestures" aria-label={t("config.touchpadMouse")}>
+                {TOUCHPAD_GESTURES.map((gesture) => (
+                  <li key={gesture}>{t(`config.touchpadMouseGestures.${gesture}`)}</li>
+                ))}
+              </ul>
             </div>
           </section>
         </div>
