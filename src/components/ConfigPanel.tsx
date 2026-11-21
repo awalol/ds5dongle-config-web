@@ -6,6 +6,7 @@ import {
   fieldIssue,
   shouldSuggestSinglePacket,
   STATUS_GPIO_DISABLED,
+  TOUCHPAD_MOUSE_ACCEL_MAX,
   TOUCHPAD_MOUSE_SPEED_MAX,
   TOUCHPAD_MOUSE_SPEED_MIN,
 } from "../protocol/config";
@@ -324,6 +325,16 @@ export function ConfigPanel({ bridge }: ConfigPanelProps) {
                 issue={fieldIssue(bridge.issues, "touchpadMouseSpeed")}
                 disabled={touchpadMouseDisabled}
                 onChange={(value) => bridge.setDraftField("touchpadMouseSpeed", value)}
+              />
+              <IntegerControl
+                label={t("config.touchpadMouseAccel")}
+                value={bridge.draft.touchpadMouseAccel}
+                min={0}
+                max={TOUCHPAD_MOUSE_ACCEL_MAX}
+                helpContent={t("config.help.touchpadMouseAccel")}
+                issue={fieldIssue(bridge.issues, "touchpadMouseAccel")}
+                disabled={touchpadMouseDisabled}
+                onChange={(value) => bridge.setDraftField("touchpadMouseAccel", value)}
               />
               <IntegerControl
                 label={t("config.touchpadMouseScrollSpeed")}

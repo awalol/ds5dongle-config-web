@@ -1,5 +1,5 @@
 export const CONFIG_BODY_VERSION = 5;
-export const CONFIG_BODY_SIZE = 30;
+export const CONFIG_BODY_SIZE = 31;
 const MIN_CONFIG_BODY_SIZE = 24;
 export const FEATURE_REPORT_PAYLOAD_SIZE = 63;
 
@@ -15,6 +15,8 @@ export type TouchpadMouseMode = 0 | 1 | 2;
 export const TOUCHPAD_MOUSE_SPEED_MIN = 1;
 export const TOUCHPAD_MOUSE_SPEED_MAX = 20;
 export const TOUCHPAD_MOUSE_SPEED_DEFAULT = 10;
+export const TOUCHPAD_MOUSE_ACCEL_MAX = 10;
+export const TOUCHPAD_MOUSE_ACCEL_DEFAULT = 3;
 
 export const STATUS_GPIO_DISABLED = 0xff;
 
@@ -58,6 +60,7 @@ export interface ConfigBody {
   touchpadMouseScrollSpeed: number;
   touchpadMouseScrollInvert: boolean;
   touchpadMouseTap: boolean;
+  touchpadMouseAccel: number;
 }
 
 export interface ConfigValidationIssue {
@@ -91,6 +94,7 @@ export const DEFAULT_CONFIG: ConfigBody = {
   touchpadMouseScrollSpeed: TOUCHPAD_MOUSE_SPEED_DEFAULT,
   touchpadMouseScrollInvert: false,
   touchpadMouseTap: true,
+  touchpadMouseAccel: TOUCHPAD_MOUSE_ACCEL_DEFAULT,
 };
 
 export const POLLING_RATE_OPTIONS: Array<{
@@ -189,6 +193,7 @@ export function encodeConfigBody(config: ConfigBody): Uint8Array<ArrayBuffer> {
   view.setUint8(27, config.touchpadMouseScrollSpeed);
   view.setUint8(28, config.touchpadMouseScrollInvert ? 1 : 0);
   view.setUint8(29, config.touchpadMouseTap ? 0 : 1); // firmware stores tap_disable
+  view.setUint8(30, config.touchpadMouseAccel);
   return bytes;
 }
 
@@ -271,6 +276,14 @@ export function validateConfig(config: ConfigBody): ConfigValidationIssue[] {
     issues.push({ field: "touchpadMouseScrollSpeed" });
   }
 
+  if (
+    !Number.isInteger(config.touchpadMouseAccel) ||
+    config.touchpadMouseAccel < 0 ||
+    config.touchpadMouseAccel > TOUCHPAD_MOUSE_ACCEL_MAX
+  ) {
+    issues.push({ field: "touchpadMouseAccel" });
+  }
+
   return issues;
 }
 
@@ -312,6 +325,7 @@ export function normalizeConfig(config: ConfigBody): ConfigBody {
     ),
     touchpadMouseScrollInvert: Boolean(config.touchpadMouseScrollInvert),
     touchpadMouseTap: Boolean(config.touchpadMouseTap),
+    touchpadMouseAccel: clampInteger(config.touchpadMouseAccel, 0, TOUCHPAD_MOUSE_ACCEL_MAX),
   };
 }
 
@@ -362,7 +376,8 @@ export function configsEqual(left: ConfigBody | null, right: ConfigBody | null):
     left.touchpadMouseSpeed === right.touchpadMouseSpeed &&
     left.touchpadMouseScrollSpeed === right.touchpadMouseScrollSpeed &&
     left.touchpadMouseScrollInvert === right.touchpadMouseScrollInvert &&
-    left.touchpadMouseTap === right.touchpadMouseTap
+    left.touchpadMouseTap === right.touchpadMouseTap &&
+    left.touchpadMouseAccel === right.touchpadMouseAccel
   );
 }
 
@@ -426,6 +441,11 @@ function decodeAt(bytes: Uint8Array, offset: number): DecodedConfigCandidate | n
       touchpadMouseScrollSpeed: decodeTouchpadSpeed(view, 27, available),
       touchpadMouseScrollInvert: available >= 29 ? view.getUint8(28) === 1 : false,
       touchpadMouseTap: available >= 30 ? view.getUint8(29) !== 1 : true,
+      // 0 is a real setting here (acceleration off); only out-of-range means default.
+      touchpadMouseAccel:
+        available >= 31 && view.getUint8(30) <= TOUCHPAD_MOUSE_ACCEL_MAX
+          ? view.getUint8(30)
+          : TOUCHPAD_MOUSE_ACCEL_DEFAULT,
     },
   };
 }
