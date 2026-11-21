@@ -127,6 +127,8 @@ export const fr = {
       compatibilityDescription: "Changer le mode d'identification de la manette.",
       integration: "Intégration GPIO",
       integrationDescription: "Piloter un voyant d'état externe ou une impulsion de connexion via un GPIO sûr.",
+      touchpadMouse: "Pavé tactile en souris",
+      touchpadMouseDescription: "Utilisez le pavé tactile comme souris pour naviguer sur le bureau. PS + clic du pavé l'active ou la désactive.",
     },
     hapticsGain: "Gain haptique",
     speakerVolume: "Volume du haut-parleur",
@@ -182,6 +184,25 @@ export const fr = {
       connected: "Haut pendant la connexion",
       pulse: "Impulsion de 200 ms à la connexion",
     },
+    touchpadMouse: "Pavé tactile en souris",
+    touchpadMouseOptions: {
+      off: "Désactivé",
+      shared: "Souris + manette",
+      exclusive: "Souris uniquement",
+    },
+    touchpadMouseGestures: {
+      move: "Un doigt : déplacer le curseur",
+      scroll: "Deux doigts : défiler",
+      leftClick: "Clic ou toucher : clic gauche",
+      rightClick: "Clic ou toucher à deux doigts : clic droit",
+      drag: "Glisser : maintenez le clic du pavé enfoncé et faites glisser le doigt",
+      toggle: "PS + clic du pavé : activer ou désactiver la souris",
+    },
+    touchpadMouseSpeed: "Vitesse du curseur",
+    touchpadMouseAccel: "Accélération",
+    touchpadMouseScrollSpeed: "Vitesse de défilement",
+    touchpadMouseScrollInvert: "Sens de défilement classique",
+    touchpadMouseTap: "Toucher pour cliquer",
     help: {
       open: "Afficher les détails",
       close: "Fermer",
@@ -214,6 +235,12 @@ export const fr = {
       enableUsbSn: "TODO : ajouter ici la description du numéro de série USB.",
       enableKeyboard:
         "Expose les interfaces USB clavier et contrôle multimédia utilisées par les raccourcis. Reconnectez l'USB après modification.",
+      touchpadMouse: "Un doigt déplace le curseur, deux doigts font défiler, un clic ou un toucher fait un clic gauche (à deux doigts : clic droit). PS + clic du pavé désactive puis réactive la souris.\nSouris + manette : les jeux reçoivent toujours le pavé tactile.\nSouris uniquement : tant que la souris est active, les jeux voient un pavé inactif.\nReconnectez l'USB après l'avoir activé ou désactivé.",
+      touchpadMouseSpeed: "1–20. Par défaut : 10. Les mouvements rapides sont accélérés.",
+      touchpadMouseAccel: "0–10. Par défaut : 3. Distance supplémentaire parcourue par le curseur lors des gestes rapides. 0 la désactive : le curseur suit toujours le doigt à la même distance.",
+      touchpadMouseScrollSpeed: "1–20. Par défaut : 10. Vitesse du défilement à deux doigts.",
+      touchpadMouseScrollInvert: "Désactivé : défilement naturel, le contenu suit les doigts.\nActivé : défilement classique, comme une molette.",
+      touchpadMouseTap: "Un toucher rapide clique sans appuyer sur le pavé. Toucher à deux doigts : clic droit.",
       statusGpioPin:
         "Le Pico 2 W permet ici les GPIO 2 à 22 et 26 à 28. Les GPIO 0/1 sont réservés à l'UART ; 23/24/25/29 sont utilisés par le circuit sans fil ou VSYS. 255 désactive la sortie.",
       statusGpioMode:

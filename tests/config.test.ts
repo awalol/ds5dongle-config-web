@@ -23,16 +23,54 @@ const customized: ConfigBody = {
 };
 
 describe("config body wire layout", () => {
-  test("keeps version 5 and extends the body to 25 bytes", () => {
+  test("keeps version 5 and extends the body to 31 bytes", () => {
     const bytes = encodeConfigBody(customized);
 
     expect(CONFIG_BODY_VERSION).toBe(5);
-    expect(CONFIG_BODY_SIZE).toBe(25);
-    expect(bytes.length).toBe(25);
+    expect(CONFIG_BODY_SIZE).toBe(31);
+    expect(bytes.length).toBe(31);
     expect(bytes[0]).toBe(5);
     expect(bytes[22]).toBe(1); // packet_mode
     expect(bytes[23]).toBe(1); // disconnect_on_dock
     expect(bytes[24]).toBe(1); // sleep_on_dock
+  });
+
+  test("encodes the touchpad mouse fields at bytes 25-30", () => {
+    const touchpad: ConfigBody = {
+      ...customized,
+      touchpadMouse: 2,
+      touchpadMouseSpeed: 5,
+      touchpadMouseScrollSpeed: 20,
+      touchpadMouseScrollInvert: true,
+      touchpadMouseTap: false,
+      touchpadMouseAccel: 0,
+    };
+    const bytes = encodeConfigBody(touchpad);
+
+    expect([...bytes.slice(25, 31)]).toEqual([2, 5, 20, 1, 1, 0]); // tap is stored as tap_disable
+    expect(decodeConfigBody(bytes)).toEqual(touchpad);
+  });
+
+  test("decodes 25-byte bodies and zero padding with touchpad mouse defaults", () => {
+    const touchpad: ConfigBody = { ...customized, touchpadMouse: 1, touchpadMouseSpeed: 7 };
+    const legacy = encodeConfigBody(touchpad).slice(0, 25);
+    const zeroPadded = new Uint8Array([...legacy, 0, 0, 0, 0, 0, 0]);
+
+    expect(decodeConfigBody(legacy)).toEqual(customized);
+    // Older firmware pads the feature report with zeros. Every touchpad field reads as its default,
+    // except acceleration, where 0 is a real setting (off).
+    expect(decodeConfigBody(zeroPadded)).toEqual({ ...customized, touchpadMouseAccel: 0 });
+  });
+
+  test("rejects touchpad mouse values the firmware cannot store", () => {
+    expect(
+      validateConfig({ ...DEFAULT_CONFIG, touchpadMouse: 3 as ConfigBody["touchpadMouse"] }).map((issue) => issue.field),
+    ).toEqual(["touchpadMouse"]);
+    expect(
+      validateConfig({ ...DEFAULT_CONFIG, touchpadMouseSpeed: 0, touchpadMouseScrollSpeed: 21, touchpadMouseAccel: 11 }).map(
+        (issue) => issue.field,
+      ),
+    ).toEqual(["touchpadMouseSpeed", "touchpadMouseScrollSpeed", "touchpadMouseAccel"]);
   });
 
   test("round-trips the new packet fields, with and without a report id prefix", () => {
