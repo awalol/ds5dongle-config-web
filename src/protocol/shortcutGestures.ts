@@ -1,5 +1,5 @@
 import {
-  BUTTON_SOURCE_COUNT, DPAD_MAX_ID, SHORTCUT_FLAG_DOUBLE_TAP, SHORTCUT_FLAG_HOLD,
+  canChordTriggers, isShortcutTriggerId, SHORTCUT_FLAG_DOUBLE_TAP, SHORTCUT_FLAG_HOLD,
   SHORTCUT_FLAG_MODIFIER_HOLD,
   SHORTCUT_TRIGGER_DOUBLE_TAP, SHORTCUT_TRIGGER_TAP, type ShortcutSlot,
 } from "./buttons";
@@ -25,15 +25,13 @@ export function getGesture(slot: ShortcutSlot): TriggerGesture {
 }
 
 export function validSecondTrigger(triggerA: number, current: number): number {
-  const valid = (button: number) => Number.isInteger(button) && button >= 0 &&
-    button < BUTTON_SOURCE_COUNT && button !== triggerA &&
-    !(button <= DPAD_MAX_ID && triggerA <= DPAD_MAX_ID);
+  const valid = (button: number) => canChordTriggers(triggerA, button);
   return valid(current) ? current : [17, 16, 20, 8].find(valid) ?? 8;
 }
 
 /** Shared by the editor and controller capture so mode flags never drift. */
 export function setGesture(slot: ShortcutSlot, gesture: TriggerGesture): ShortcutSlot {
-  const triggerA = slot.triggerA >= 0 && slot.triggerA < BUTTON_SOURCE_COUNT ? slot.triggerA : 20;
+  const triggerA = isShortcutTriggerId(slot.triggerA) ? slot.triggerA : 20;
   return {
     ...slot,
     triggerA,
@@ -51,8 +49,7 @@ export function captureTrigger(slot: ShortcutSlot, buttons: readonly number[]): 
   if (gesture === "modifierHold") {
     // Roles are ordered even though runtime activation accepts either order.
     // Incomplete/invalid capture must not silently turn this into a single hold.
-    if (buttons.length !== 2 || !Number.isInteger(buttons[0]) ||
-      buttons[0] < 0 || buttons[0] >= BUTTON_SOURCE_COUNT ||
+    if (buttons.length !== 2 || !isShortcutTriggerId(buttons[0]) ||
       validSecondTrigger(buttons[0], buttons[1]) !== buttons[1]) return slot;
     return setGesture({ ...slot, triggerA: buttons[0], triggerB: buttons[1] }, gesture);
   }
